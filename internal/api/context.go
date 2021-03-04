@@ -5,8 +5,6 @@
 package api
 
 import (
-	// "github.com/mattermost/mattermost-cloud/k8s"
-
 	"github.com/mattermost/genesis/model"
 	"github.com/sirupsen/logrus"
 )

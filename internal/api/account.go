@@ -25,6 +25,7 @@ func initAccount(apiRouter *mux.Router, context *Context) {
 
 	accountRouter := apiRouter.PathPrefix("/account/{account:[A-Za-z0-9]{26}}").Subrouter()
 	accountRouter.Handle("", addContext(handleGetAccount)).Methods("GET")
+	accountRouter.Handle("", addContext(handleRetryCreateAccount)).Methods("POST")
 	accountRouter.Handle("/provision", addContext(handleProvisionAccount)).Methods("POST")
 
 	accountRouter.Handle("", addContext(handleDeleteAccount)).Methods("DELETE")
@@ -136,64 +137,60 @@ func handleCreateAccount(c *Context, w http.ResponseWriter, r *http.Request) {
 	outputJSON(c, w, account.ToDTO())
 }
 
-// TODO: Will be enabled soon
-// // handleRetryCreateAccount responds to POST /api/account/{account}, retrying a previously
-// // failed creation.
-// //
-// // Note that other operations on an account may be retried by simply repeating the same request,
-// // but repeating handleCreateAccount would create a second account.
-// func handleRetryCreateAccount(c *Context, w http.ResponseWriter, r *http.Request) {
-// 	vars := mux.Vars(r)
-// 	accountID := vars["account"]
-// 	c.Logger = c.Logger.WithField("account", accountID)
+// handleRetryCreateAccount responds to POST /api/account/{account}, retrying a previously
+// failed creation.
+func handleRetryCreateAccount(c *Context, w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	accountID := vars["account"]
+	c.Logger = c.Logger.WithField("account", accountID)
 
-// 	accountDTO, status, unlockOnce := lockAccount(c, accountID)
-// 	if status != 0 {
-// 		w.WriteHeader(status)
-// 		return
-// 	}
-// 	defer unlockOnce()
+	accountDTO, status, unlockOnce := lockAccount(c, accountID)
+	if status != 0 {
+		w.WriteHeader(status)
+		return
+	}
+	defer unlockOnce()
 
-// 	newState := model.AccountStateCreationRequested
+	newState := model.AccountStateCreationRequested
 
-// 	if !accountDTO.ValidTransitionState(newState) {
-// 		c.Logger.Warnf("unable to retry account creation while in state %s", accountDTO.State)
-// 		w.WriteHeader(http.StatusBadRequest)
-// 		return
-// 	}
+	if !accountDTO.ValidTransitionState(newState) {
+		c.Logger.Warnf("unable to retry account creation while in state %s", accountDTO.State)
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
 
-// 	if accountDTO.State != newState {
-// 		webhookPayload := &model.WebhookPayload{
-// 			Type:      model.TypeAccount,
-// 			ID:        accountDTO.ID,
-// 			NewState:  newState,
-// 			OldState:  accountDTO.State,
-// 			Timestamp: time.Now().UnixNano(),
-// 			ExtraData: map[string]string{"Environment": c.Environment},
-// 		}
-// 		accountDTO.State = newState
+	if accountDTO.State != newState {
+		webhookPayload := &model.WebhookPayload{
+			Type:      model.TypeAccount,
+			ID:        accountDTO.ID,
+			NewState:  newState,
+			OldState:  accountDTO.State,
+			Timestamp: time.Now().UnixNano(),
+			ExtraData: map[string]string{"Environment": c.Environment},
+		}
+		accountDTO.State = newState
 
-// 		err := c.Store.UpdateAccount(accountDTO.Account)
-// 		if err != nil {
-// 			c.Logger.WithError(err).Errorf("failed to retry account creation")
-// 			w.WriteHeader(http.StatusInternalServerError)
-// 			return
-// 		}
+		err := c.Store.UpdateAccount(accountDTO.Account)
+		if err != nil {
+			c.Logger.WithError(err).Errorf("failed to retry account creation")
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
 
-// 		err = webhook.SendToAllWebhooks(c.Store, webhookPayload, c.Logger.WithField("webhookEvent", webhookPayload.NewState))
-// 		if err != nil {
-// 			c.Logger.WithError(err).Error("Unable to process and send webhooks")
-// 		}
-// 	}
+		err = webhook.SendToAllWebhooks(c.Store, webhookPayload, c.Logger.WithField("webhookEvent", webhookPayload.NewState))
+		if err != nil {
+			c.Logger.WithError(err).Error("Unable to process and send webhooks")
+		}
+	}
 
-// 	// Notify even if we didn't make changes, to expedite even the no-op operations above.
-// 	unlockOnce()
-// 	c.Supervisor.Do()
+	// Notify even if we didn't make changes, to expedite even the no-op operations above.
+	unlockOnce()
+	c.Supervisor.Do()
 
-// 	w.Header().Set("Content-Type", "application/json")
-// 	w.WriteHeader(http.StatusAccepted)
-// 	outputJSON(c, w, accountDTO)
-// }
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusAccepted)
+	outputJSON(c, w, accountDTO)
+}
 
 // handleProvisionCluster responds to POST /api/account/{account}/provision,
 // provisioning AWS resources on a previously-created account.

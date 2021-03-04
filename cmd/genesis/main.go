@@ -27,6 +27,8 @@ func init() {
 	rootCmd.AddCommand(serverCmd)
 	rootCmd.AddCommand(accountCmd)
 	rootCmd.AddCommand(schemaCmd)
+	rootCmd.AddCommand(webhookCmd)
+	rootCmd.AddCommand(securityCmd)
 }
 
 func main() {

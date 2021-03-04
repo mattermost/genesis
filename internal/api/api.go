@@ -13,4 +13,6 @@ func Register(rootRouter *mux.Router, context *Context) {
 	// api handler at /api
 	apiRouter := rootRouter.PathPrefix("/api").Subrouter()
 	initAccount(apiRouter, context)
+	initWebhook(apiRouter, context)
+	initSecurity(apiRouter, context)
 }
