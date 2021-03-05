@@ -29,8 +29,6 @@ type SQLStore struct {
 
 // New constructs a new instance of SQLStore.
 func New(dsn string, logger logrus.FieldLogger) (*SQLStore, error) {
-	// TODO: fix this dirty workaround
-	// https://github.com/golang/go/issues/33633
 	if strings.Contains(dsn, "file:") {
 		dsn = strings.Replace(dsn, "file:", "fileColonPlaceholder", 1)
 	}

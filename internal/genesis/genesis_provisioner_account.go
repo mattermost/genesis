@@ -23,7 +23,7 @@ func (provisioner *GenesisProvisioner) CreateAccount(account *model.Account, aws
 		return err
 	}
 
-	if account.Provision {
+	if account.AccountMetadata.Provision {
 		err = provisioner.ProvisionAccount(account, awsClient)
 		if err != nil {
 			return err

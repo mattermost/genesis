@@ -15,13 +15,13 @@ type Account struct {
 	State               string
 	Provider            string
 	ProviderMetadataAWS *AWSMetadata
+	AccountMetadata     *AccountMetadata
 	Provisioner         string
 	CreateAt            int64
 	DeleteAt            int64
 	APISecurityLock     bool
 	LockAcquiredBy      *string
 	LockAcquiredAt      int64
-	Provision           bool
 }
 
 // Clone returns a deep copy the account.

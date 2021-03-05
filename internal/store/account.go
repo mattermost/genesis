@@ -17,7 +17,7 @@ var accountSelect sq.SelectBuilder
 
 func init() {
 	accountSelect = sq.
-		Select("Account.ID", "Provider", "Provisioner", "ProviderMetadataRaw", "ProvisionerMetadataRaw",
+		Select("Account.ID", "Provider", "Provisioner", "ProviderMetadataRaw", "AccountMetadataRaw",
 			"State", "CreateAt", "DeleteAt",
 			"APISecurityLock", "LockAcquiredBy", "LockAcquiredAt").
 		From("Account")
@@ -25,8 +25,8 @@ func init() {
 
 // RawAccountMetadata is the raw byte metadata for a account.
 type RawAccountMetadata struct {
-	ProviderMetadataRaw    []byte
-	ProvisionerMetadataRaw []byte
+	ProviderMetadataRaw []byte
+	AccountMetadataRaw  []byte
 }
 
 type rawAccount struct {
@@ -42,14 +42,25 @@ func buildRawMetadata(account *model.Account) (*RawAccountMetadata, error) {
 		return nil, errors.Wrap(err, "unable to marshal ProviderMetadataAWS")
 	}
 
+	accountMetadataJSON, err := json.Marshal(account.AccountMetadata)
+	if err != nil {
+		return nil, errors.Wrap(err, "unable to marshal AccountMetadata")
+	}
+
 	return &RawAccountMetadata{
 		ProviderMetadataRaw: providerMetadataJSON,
+		AccountMetadataRaw:  accountMetadataJSON,
 	}, nil
 }
 
 func (r *rawAccount) toAccount() (*model.Account, error) {
 	var err error
 	r.Account.ProviderMetadataAWS, err = model.NewAWSMetadata(r.ProviderMetadataRaw)
+	if err != nil {
+		return nil, err
+	}
+
+	r.Account.AccountMetadata, err = model.NewAccountMetadata(r.AccountMetadataRaw)
 	if err != nil {
 		return nil, err
 	}
@@ -164,17 +175,17 @@ func (sqlStore *SQLStore) createAccount(execer execer, account *model.Account) e
 	_, err = sqlStore.execBuilder(execer, sq.
 		Insert("Account").
 		SetMap(map[string]interface{}{
-			"ID":                     account.ID,
-			"State":                  account.State,
-			"Provider":               account.Provider,
-			"ProviderMetadataRaw":    rawMetadata.ProviderMetadataRaw,
-			"Provisioner":            account.Provisioner,
-			"ProvisionerMetadataRaw": rawMetadata.ProvisionerMetadataRaw,
-			"CreateAt":               account.CreateAt,
-			"DeleteAt":               account.DeleteAt,
-			"APISecurityLock":        account.APISecurityLock,
-			"LockAcquiredBy":         nil,
-			"LockAcquiredAt":         0,
+			"ID":                  account.ID,
+			"State":               account.State,
+			"Provider":            account.Provider,
+			"ProviderMetadataRaw": rawMetadata.ProviderMetadataRaw,
+			"Provisioner":         account.Provisioner,
+			"AccountMetadataRaw":  rawMetadata.AccountMetadataRaw,
+			"CreateAt":            account.CreateAt,
+			"DeleteAt":            account.DeleteAt,
+			"APISecurityLock":     account.APISecurityLock,
+			"LockAcquiredBy":      nil,
+			"LockAcquiredAt":      0,
 		}),
 	)
 	if err != nil {
@@ -194,11 +205,11 @@ func (sqlStore *SQLStore) UpdateAccount(account *model.Account) error {
 	_, err = sqlStore.execBuilder(sqlStore.db, sq.
 		Update("Account").
 		SetMap(map[string]interface{}{
-			"State":                  account.State,
-			"Provider":               account.Provider,
-			"ProviderMetadataRaw":    rawMetadata.ProviderMetadataRaw,
-			"Provisioner":            account.Provisioner,
-			"ProvisionerMetadataRaw": rawMetadata.ProvisionerMetadataRaw,
+			"State":               account.State,
+			"Provider":            account.Provider,
+			"ProviderMetadataRaw": rawMetadata.ProviderMetadataRaw,
+			"Provisioner":         account.Provisioner,
+			"AccountMetadataRaw":  rawMetadata.AccountMetadataRaw,
 		}).
 		Where("ID = ?", account.ID),
 	)

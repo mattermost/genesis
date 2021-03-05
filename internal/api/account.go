@@ -104,10 +104,12 @@ func handleCreateAccount(c *Context, w http.ResponseWriter, r *http.Request) {
 			AWSAccountID:            "",
 			AccountProductID:        "",
 		},
+		AccountMetadata: &model.AccountMetadata{
+			Provision: createAccountRequest.Provision,
+		},
 		Provisioner:     "genesis",
 		APISecurityLock: createAccountRequest.APISecurityLock,
 		State:           model.AccountStateCreationRequested,
-		Provision:       createAccountRequest.Provision,
 	}
 
 	err = c.Store.CreateAccount(&account)
@@ -237,6 +239,7 @@ func handleProvisionAccount(c *Context, w http.ResponseWriter, r *http.Request) 
 			ExtraData: map[string]string{"Environment": c.Environment},
 		}
 		accountDTO.State = newState
+		accountDTO.Account.AccountMetadata.Provision = true
 
 		err := c.Store.UpdateAccount(accountDTO.Account)
 		if err != nil {

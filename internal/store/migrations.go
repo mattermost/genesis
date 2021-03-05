@@ -38,7 +38,7 @@ var migrations = []migration{
 				Provider TEXT NOT NULL,
 				ProviderMetadataRaw BYTEA NULL,
 				Provisioner TEXT NOT NULL,
-				ProvisionerMetadataRaw BYTEA NULL,
+				AccountMetadataRaw BYTEA NULL,
 				CreateAt BIGINT NOT NULL,
 				DeleteAt BIGINT NOT NULL,
 				APISecurityLock BOOLEAN NOT NULL,

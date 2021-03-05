@@ -160,7 +160,10 @@ func (a *Client) ProvisionServiceCatalogProduct(ssoUserEmail, ssoFirstName, ssoL
 		},
 	}
 	_, err = a.ProvisionProduct(accountInput)
-	if err != nil {
+	if err != nil && IsErrorCode(err, servicecatalog.ErrCodeDuplicateResourceException) {
+		a.logger.Info("Service catalog product already provisioned, skipping...")
+		return nil
+	} else if err != nil {
 		return err
 	}
 	return nil
