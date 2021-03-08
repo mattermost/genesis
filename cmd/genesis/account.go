@@ -25,7 +25,7 @@ func init() {
 	accountCreateCmd.MarkFlagRequired("service-catalog-product")
 
 	accountProvisionCmd.Flags().String("account", "", "The id of the account to be deleted.")
-	accountProvisionCmd.MarkFlagRequired("	account")
+	accountProvisionCmd.MarkFlagRequired("account")
 
 	accountDeleteCmd.Flags().String("account", "", "The id of the account to be deleted.")
 	accountDeleteCmd.MarkFlagRequired("account")
