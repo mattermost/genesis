@@ -47,7 +47,7 @@ func init() {
 
 var accountCmd = &cobra.Command{
 	Use:   "account",
-	Short: "Manipulate accounts managed by the provisioning server.",
+	Short: "Manipulate accounts managed by the genesis server.",
 }
 
 func printJSON(data interface{}) error {
