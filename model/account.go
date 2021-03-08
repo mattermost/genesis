@@ -25,18 +25,18 @@ type Account struct {
 }
 
 // Clone returns a deep copy the account.
-func (c *Account) Clone() *Account {
+func (a *Account) Clone() *Account {
 	var clone Account
-	data, _ := json.Marshal(c)
+	data, _ := json.Marshal(a)
 	json.Unmarshal(data, &clone)
 
 	return &clone
 }
 
 // ToDTO expands account to AccountDTO.
-func (c *Account) ToDTO() *AccountDTO {
+func (a *Account) ToDTO() *AccountDTO {
 	return &AccountDTO{
-		Account: c,
+		Account: a,
 	}
 }
 
