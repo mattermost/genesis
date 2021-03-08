@@ -28,7 +28,7 @@ func init() {
 	accountProvisionCmd.MarkFlagRequired("	account")
 
 	accountDeleteCmd.Flags().String("account", "", "The id of the account to be deleted.")
-	accountDeleteCmd.MarkFlagRequired("	account")
+	accountDeleteCmd.MarkFlagRequired("account")
 
 	accountGetCmd.Flags().String("account", "", "The id of the account to be fetched.")
 	accountGetCmd.MarkFlagRequired("account")
