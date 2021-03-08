@@ -9,7 +9,7 @@ import (
 	"io"
 )
 
-// Account represents a Kubernetes account.
+// Account represents an AWS account.
 type Account struct {
 	ID                  string
 	State               string
