@@ -15,7 +15,7 @@ import (
 )
 
 func init() {
-	accountCmd.PersistentFlags().String("server", defaultLocalServerAPI, "The provisioning server whose API will be queried.")
+	accountCmd.PersistentFlags().String("server", defaultLocalServerAPI, "The genesis server whose API will be queried.")
 	accountCmd.PersistentFlags().Bool("dry-run", false, "When set to true, only print the API request without sending it.")
 
 	accountCreateCmd.Flags().String("service-catalog-product", "", "The service catalog product id to provision a new account")
