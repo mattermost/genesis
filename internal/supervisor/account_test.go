@@ -115,8 +115,30 @@ func TestAccountSupervisorDo(t *testing.T) {
 		mockStore := &mockAccountStore{}
 
 		mockStore.UnlockedAccountsPendingWork = []*model.Account{{
+			ID:              model.NewID(),
+			State:           model.AccountStateCreationRequested,
+			AccountMetadata: &model.AccountMetadata{},
+		}}
+		mockStore.Account = mockStore.UnlockedAccountsPendingWork[0]
+		mockStore.UnlockChan = make(chan interface{})
+
+		supervisor := supervisor.NewAccountSupervisor(mockStore, &mockAccountProvisioner{}, &mockAWS{}, "instanceID", logger)
+		err := supervisor.Do()
+		require.NoError(t, err)
+
+		<-mockStore.UnlockChan
+		require.Equal(t, 2, mockStore.UpdateAccountCalls)
+	})
+	t.Run("mock Account creation and provision", func(t *testing.T) {
+		logger := testlib.MakeLogger(t)
+		mockStore := &mockAccountStore{}
+
+		mockStore.UnlockedAccountsPendingWork = []*model.Account{{
 			ID:    model.NewID(),
 			State: model.AccountStateCreationRequested,
+			AccountMetadata: &model.AccountMetadata{
+				Provision: true,
+			},
 		}}
 		mockStore.Account = mockStore.UnlockedAccountsPendingWork[0]
 		mockStore.UnlockChan = make(chan interface{})
@@ -148,8 +170,9 @@ func TestAccountSupervisorSupervise(t *testing.T) {
 			supervisor := supervisor.NewAccountSupervisor(sqlStore, &mockAccountProvisioner{}, &mockAWS{}, "instanceID", logger)
 
 			Account := &model.Account{
-				Provider: model.ProviderAWS,
-				State:    tc.InitialState,
+				Provider:        model.ProviderAWS,
+				State:           tc.InitialState,
+				AccountMetadata: &model.AccountMetadata{},
 			}
 			err := sqlStore.CreateAccount(Account)
 			require.NoError(t, err)
