@@ -50,11 +50,8 @@ var migrations = []migration{
 			return err
 		}
 
-		return nil
-	}},
-	{semver.MustParse("0.1.0"), semver.MustParse("0.2.0"), func(e execer) error {
 		// Add webhook table.
-		_, err := e.Exec(`
+		_, err = e.Exec(`
 			CREATE TABLE Webhooks (
 				ID TEXT PRIMARY KEY,
 				OwnerID TEXT NOT NULL,

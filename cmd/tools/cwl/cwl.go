@@ -32,7 +32,7 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	wType := "UNKN"
 	switch webhook.Type {
 	case cloud.TypeAccount:
-		wType = "CLSR"
+		wType = "ACCT"
 	}
 
 	log.Printf("[ %s | %s ] %s -> %s", wType, webhook.ID[0:4], webhook.OldState, webhook.NewState)

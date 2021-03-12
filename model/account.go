@@ -33,13 +33,6 @@ func (a *Account) Clone() *Account {
 	return &clone
 }
 
-// ToDTO expands account to AccountDTO.
-func (a *Account) ToDTO() *AccountDTO {
-	return &AccountDTO{
-		Account: a,
-	}
-}
-
 // AccountFromReader decodes a json-encoded account from the given io.Reader.
 func AccountFromReader(reader io.Reader) (*Account, error) {
 	account := Account{}

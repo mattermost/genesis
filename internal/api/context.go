@@ -18,9 +18,7 @@ type Supervisor interface {
 type Store interface {
 	CreateAccount(account *model.Account) error
 	GetAccount(accountID string) (*model.Account, error)
-	GetAccountDTO(accountID string) (*model.AccountDTO, error)
 	GetAccounts(filter *model.AccountFilter) ([]*model.Account, error)
-	GetAccountDTOs(filter *model.AccountFilter) ([]*model.AccountDTO, error)
 	UpdateAccount(account *model.Account) error
 	LockAccount(accountID, lockerID string) (bool, error)
 	UnlockAccount(accountID, lockerID string, force bool) (bool, error)

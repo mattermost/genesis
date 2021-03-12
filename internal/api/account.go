@@ -37,7 +37,7 @@ func handleGetAccount(c *Context, w http.ResponseWriter, r *http.Request) {
 	accountID := vars["account"]
 	c.Logger = c.Logger.WithField("account", accountID)
 
-	account, err := c.Store.GetAccountDTO(accountID)
+	account, err := c.Store.GetAccount(accountID)
 	if err != nil {
 		c.Logger.WithError(err).Error("failed to query account")
 		w.WriteHeader(http.StatusInternalServerError)
@@ -55,7 +55,7 @@ func handleGetAccount(c *Context, w http.ResponseWriter, r *http.Request) {
 
 // handleGetAccounts responds to GET /api/accounts, returning the specified page of accounts.
 func handleGetAccounts(c *Context, w http.ResponseWriter, r *http.Request) {
-	page, perPage, includeDeleted, err := parsePaging(r.URL)
+	page, perPage, includeDeleted, _, err := parsePaging(r.URL)
 	if err != nil {
 		c.Logger.WithError(err).Error("failed to parse paging parameters")
 		w.WriteHeader(http.StatusBadRequest)
@@ -68,14 +68,14 @@ func handleGetAccounts(c *Context, w http.ResponseWriter, r *http.Request) {
 		IncludeDeleted: includeDeleted,
 	}
 
-	accounts, err := c.Store.GetAccountDTOs(filter)
+	accounts, err := c.Store.GetAccounts(filter)
 	if err != nil {
 		c.Logger.WithError(err).Error("failed to query accounts")
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 	if accounts == nil {
-		accounts = []*model.AccountDTO{}
+		accounts = []*model.Account{}
 	}
 
 	w.Header().Set("Content-Type", "application/json")
@@ -136,7 +136,7 @@ func handleCreateAccount(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusAccepted)
-	outputJSON(c, w, account.ToDTO())
+	outputJSON(c, w, account)
 }
 
 // handleRetryCreateAccount responds to POST /api/account/{account}, retrying a previously
@@ -146,7 +146,7 @@ func handleRetryCreateAccount(c *Context, w http.ResponseWriter, r *http.Request
 	accountID := vars["account"]
 	c.Logger = c.Logger.WithField("account", accountID)
 
-	accountDTO, status, unlockOnce := lockAccount(c, accountID)
+	account, status, unlockOnce := lockAccount(c, accountID)
 	if status != 0 {
 		w.WriteHeader(status)
 		return
@@ -155,24 +155,24 @@ func handleRetryCreateAccount(c *Context, w http.ResponseWriter, r *http.Request
 
 	newState := model.AccountStateCreationRequested
 
-	if !accountDTO.ValidTransitionState(newState) {
-		c.Logger.Warnf("unable to retry account creation while in state %s", accountDTO.State)
+	if !account.ValidTransitionState(newState) {
+		c.Logger.Warnf("unable to retry account creation while in state %s", account.State)
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
-	if accountDTO.State != newState {
+	if account.State != newState {
 		webhookPayload := &model.WebhookPayload{
 			Type:      model.TypeAccount,
-			ID:        accountDTO.ID,
+			ID:        account.ID,
 			NewState:  newState,
-			OldState:  accountDTO.State,
+			OldState:  account.State,
 			Timestamp: time.Now().UnixNano(),
 			ExtraData: map[string]string{"Environment": c.Environment},
 		}
-		accountDTO.State = newState
+		account.State = newState
 
-		err := c.Store.UpdateAccount(accountDTO.Account)
+		err := c.Store.UpdateAccount(account)
 		if err != nil {
 			c.Logger.WithError(err).Errorf("failed to retry account creation")
 			w.WriteHeader(http.StatusInternalServerError)
@@ -191,7 +191,7 @@ func handleRetryCreateAccount(c *Context, w http.ResponseWriter, r *http.Request
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusAccepted)
-	outputJSON(c, w, accountDTO)
+	outputJSON(c, w, account)
 }
 
 // handleProvisionCluster responds to POST /api/account/{account}/provision,
@@ -201,14 +201,14 @@ func handleProvisionAccount(c *Context, w http.ResponseWriter, r *http.Request) 
 	accountID := vars["account"]
 	c.Logger = c.Logger.WithField("account", accountID)
 
-	accountDTO, status, unlockOnce := lockAccount(c, accountID)
+	account, status, unlockOnce := lockAccount(c, accountID)
 	if status != 0 {
 		w.WriteHeader(status)
 		return
 	}
 	defer unlockOnce()
 
-	if accountDTO.APISecurityLock {
+	if account.APISecurityLock {
 		logSecurityLockConflict("account", c.Logger)
 		w.WriteHeader(http.StatusForbidden)
 		return
@@ -223,25 +223,25 @@ func handleProvisionAccount(c *Context, w http.ResponseWriter, r *http.Request) 
 
 	newState := model.AccountStateProvisioningRequested
 
-	if !accountDTO.ValidTransitionState(newState) {
-		c.Logger.Warnf("unable to provision account while in state %s", accountDTO.State)
+	if !account.ValidTransitionState(newState) {
+		c.Logger.Warnf("unable to provision account while in state %s", account.State)
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
-	if accountDTO.State != newState {
+	if account.State != newState {
 		webhookPayload := &model.WebhookPayload{
 			Type:      model.TypeAccount,
-			ID:        accountDTO.ID,
+			ID:        account.ID,
 			NewState:  newState,
-			OldState:  accountDTO.State,
+			OldState:  account.State,
 			Timestamp: time.Now().UnixNano(),
 			ExtraData: map[string]string{"Environment": c.Environment},
 		}
-		accountDTO.State = newState
-		accountDTO.Account.AccountMetadata.Provision = true
+		account.State = newState
+		account.AccountMetadata.Provision = true
 
-		err := c.Store.UpdateAccount(accountDTO.Account)
+		err := c.Store.UpdateAccount(account)
 		if err != nil {
 			c.Logger.WithError(err).Errorf("failed to mark account provisioning state")
 			w.WriteHeader(http.StatusInternalServerError)
@@ -260,7 +260,7 @@ func handleProvisionAccount(c *Context, w http.ResponseWriter, r *http.Request) 
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusAccepted)
-	outputJSON(c, w, accountDTO)
+	outputJSON(c, w, account)
 }
 
 // handleDeleteAccount responds to DELETE /api/account/{account}, beginning the process of
@@ -270,14 +270,14 @@ func handleDeleteAccount(c *Context, w http.ResponseWriter, r *http.Request) {
 	accountID := vars["account"]
 	c.Logger = c.Logger.WithField("account", accountID)
 
-	accountDTO, status, unlockOnce := lockAccount(c, accountID)
+	account, status, unlockOnce := lockAccount(c, accountID)
 	if status != 0 {
 		w.WriteHeader(status)
 		return
 	}
 	defer unlockOnce()
 
-	if accountDTO.APISecurityLock {
+	if account.APISecurityLock {
 		logSecurityLockConflict("account", c.Logger)
 		w.WriteHeader(http.StatusForbidden)
 		return
@@ -285,15 +285,15 @@ func handleDeleteAccount(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	newState := model.AccountStateDeletionRequested
 
-	if !accountDTO.ValidTransitionState(newState) {
-		c.Logger.Warnf("unable to delete account while in state %s", accountDTO.State)
+	if !account.ValidTransitionState(newState) {
+		c.Logger.Warnf("unable to delete account while in state %s", account.State)
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
 	// TODO: will be used soon
 	// genesisResources, err := c.Store.GetGenesisResources(&model.GenesisResourcesFilter{
-	// 	AccountID:      accountDTO.ID,
+	// 	AccountID:      account.ID,
 	// 	IncludeDeleted: false,
 	// 	PerPage:        model.AllPerPage,
 	// })
@@ -309,18 +309,18 @@ func handleDeleteAccount(c *Context, w http.ResponseWriter, r *http.Request) {
 	// 	return
 	// }
 
-	if accountDTO.State != newState {
+	if account.State != newState {
 		webhookPayload := &model.WebhookPayload{
 			Type:      model.TypeAccount,
-			ID:        accountDTO.ID,
+			ID:        account.ID,
 			NewState:  newState,
-			OldState:  accountDTO.State,
+			OldState:  account.State,
 			Timestamp: time.Now().UnixNano(),
 			ExtraData: map[string]string{"Environment": c.Environment},
 		}
-		accountDTO.State = newState
+		account.State = newState
 
-		err := c.Store.UpdateAccount(accountDTO.Account)
+		err := c.Store.UpdateAccount(account)
 		if err != nil {
 			c.Logger.WithError(err).Error("failed to mark account for deletion")
 			w.WriteHeader(http.StatusInternalServerError)

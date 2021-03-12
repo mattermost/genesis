@@ -78,7 +78,7 @@ func handleGetWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
 func handleGetWebhooks(c *Context, w http.ResponseWriter, r *http.Request) {
 	var err error
 	owner := r.URL.Query().Get("owner")
-	page, perPage, includeDeleted, err := parsePaging(r.URL)
+	page, perPage, includeDeleted, _, err := parsePaging(r.URL)
 	if err != nil {
 		c.Logger.WithError(err).Error("failed to parse paging parameters")
 		w.WriteHeader(http.StatusBadRequest)

@@ -149,7 +149,7 @@ func TestAccounts(t *testing.T) {
 				IncludeDeleted: false,
 			})
 			require.NoError(t, err)
-			require.Equal(t, []*model.AccountDTO{account1, account2}, accounts)
+			require.Equal(t, []*model.Account{account1, account2}, accounts)
 		})
 
 		t.Run("get accounts, page 1, perPage 2, exclude deleted", func(t *testing.T) {
@@ -159,12 +159,12 @@ func TestAccounts(t *testing.T) {
 				IncludeDeleted: false,
 			})
 			require.NoError(t, err)
-			require.Equal(t, []*model.AccountDTO{account3.ToDTO()}, accounts)
+			require.Equal(t, []*model.Account{account3}, accounts)
 		})
 
 		t.Run("delete account", func(t *testing.T) {
 			account2.State = model.AccountStateStable
-			err := sqlStore.UpdateAccount(account2.Account)
+			err := sqlStore.UpdateAccount(account2)
 			require.NoError(t, err)
 
 			err = client.DeleteAccount(account2.ID)
@@ -183,7 +183,7 @@ func TestAccounts(t *testing.T) {
 					IncludeDeleted: false,
 				})
 				require.NoError(t, err)
-				require.Equal(t, []*model.AccountDTO{account1, account2}, accounts)
+				require.Equal(t, []*model.Account{account1, account2}, accounts)
 			})
 
 			t.Run("page 1, perPage 2, exclude deleted", func(t *testing.T) {
@@ -193,7 +193,7 @@ func TestAccounts(t *testing.T) {
 					IncludeDeleted: false,
 				})
 				require.NoError(t, err)
-				require.Equal(t, []*model.AccountDTO{account3}, accounts)
+				require.Equal(t, []*model.Account{account3}, accounts)
 			})
 
 			t.Run("page 0, perPage 2, include deleted", func(t *testing.T) {
@@ -203,7 +203,7 @@ func TestAccounts(t *testing.T) {
 					IncludeDeleted: true,
 				})
 				require.NoError(t, err)
-				require.Equal(t, []*model.AccountDTO{account1, account2}, accounts)
+				require.Equal(t, []*model.Account{account1, account2}, accounts)
 			})
 
 			t.Run("page 1, perPage 2, include deleted", func(t *testing.T) {
@@ -213,7 +213,7 @@ func TestAccounts(t *testing.T) {
 					IncludeDeleted: true,
 				})
 				require.NoError(t, err)
-				require.Equal(t, []*model.AccountDTO{account3}, accounts)
+				require.Equal(t, []*model.Account{account3}, accounts)
 			})
 		})
 
@@ -232,7 +232,7 @@ func TestAccounts(t *testing.T) {
 					IncludeDeleted: false,
 				})
 				require.NoError(t, err)
-				require.Equal(t, []*model.AccountDTO{account1, account3}, accounts)
+				require.Equal(t, []*model.Account{account1, account3}, accounts)
 			})
 
 			t.Run("page 1, perPage 2, exclude deleted", func(t *testing.T) {
@@ -242,7 +242,7 @@ func TestAccounts(t *testing.T) {
 					IncludeDeleted: false,
 				})
 				require.NoError(t, err)
-				require.Equal(t, []*model.AccountDTO{}, accounts)
+				require.Equal(t, []*model.Account{}, accounts)
 			})
 
 			t.Run("page 0, perPage 2, include deleted", func(t *testing.T) {
@@ -252,7 +252,7 @@ func TestAccounts(t *testing.T) {
 					IncludeDeleted: true,
 				})
 				require.NoError(t, err)
-				require.Equal(t, []*model.AccountDTO{account1, account2}, accounts)
+				require.Equal(t, []*model.Account{account1, account2}, accounts)
 			})
 
 			t.Run("page 1, perPage 2, include deleted", func(t *testing.T) {
@@ -262,7 +262,7 @@ func TestAccounts(t *testing.T) {
 					IncludeDeleted: true,
 				})
 				require.NoError(t, err)
-				require.Equal(t, []*model.AccountDTO{account3}, accounts)
+				require.Equal(t, []*model.Account{account3}, accounts)
 			})
 		})
 	})
@@ -358,7 +358,7 @@ func TestRetryCreateAccount(t *testing.T) {
 
 	t.Run("while locked", func(t *testing.T) {
 		account1.State = model.AccountStateStable
-		err = sqlStore.UpdateAccount(account1.Account)
+		err = sqlStore.UpdateAccount(account1)
 		require.NoError(t, err)
 
 		lockerID := model.NewID()
@@ -378,7 +378,7 @@ func TestRetryCreateAccount(t *testing.T) {
 
 	t.Run("while creating", func(t *testing.T) {
 		account1.State = model.AccountStateCreationRequested
-		err = sqlStore.UpdateAccount(account1.Account)
+		err = sqlStore.UpdateAccount(account1)
 		require.NoError(t, err)
 
 		err = client.RetryCreateAccount(account1.ID)
@@ -391,7 +391,7 @@ func TestRetryCreateAccount(t *testing.T) {
 
 	t.Run("while stable", func(t *testing.T) {
 		account1.State = model.AccountStateStable
-		err = sqlStore.UpdateAccount(account1.Account)
+		err = sqlStore.UpdateAccount(account1)
 		require.NoError(t, err)
 
 		err = client.RetryCreateAccount(account1.ID)
@@ -400,7 +400,7 @@ func TestRetryCreateAccount(t *testing.T) {
 
 	t.Run("while creation failed", func(t *testing.T) {
 		account1.State = model.AccountStateCreationFailed
-		err = sqlStore.UpdateAccount(account1.Account)
+		err = sqlStore.UpdateAccount(account1)
 		require.NoError(t, err)
 
 		err = client.RetryCreateAccount(account1.ID)
@@ -443,7 +443,7 @@ func TestProvisionAccount(t *testing.T) {
 
 	t.Run("while locked", func(t *testing.T) {
 		account1.State = model.AccountStateStable
-		err = sqlStore.UpdateAccount(account1.Account)
+		err = sqlStore.UpdateAccount(account1)
 		require.NoError(t, err)
 
 		lockerID := model.NewID()
@@ -476,7 +476,7 @@ func TestProvisionAccount(t *testing.T) {
 
 	t.Run("while provisioning", func(t *testing.T) {
 		account1.State = model.AccountStateProvisioningRequested
-		err = sqlStore.UpdateAccount(account1.Account)
+		err = sqlStore.UpdateAccount(account1)
 		require.NoError(t, err)
 
 		accountResp, err := client.ProvisionAccount(account1.ID, nil)
@@ -490,7 +490,7 @@ func TestProvisionAccount(t *testing.T) {
 
 	t.Run("after provisioning failed", func(t *testing.T) {
 		account1.State = model.AccountStateProvisioningFailed
-		err = sqlStore.UpdateAccount(account1.Account)
+		err = sqlStore.UpdateAccount(account1)
 		require.NoError(t, err)
 
 		accountResp, err := client.ProvisionAccount(account1.ID, nil)
@@ -504,7 +504,7 @@ func TestProvisionAccount(t *testing.T) {
 
 	t.Run("while stable", func(t *testing.T) {
 		account1.State = model.AccountStateStable
-		err = sqlStore.UpdateAccount(account1.Account)
+		err = sqlStore.UpdateAccount(account1)
 		require.NoError(t, err)
 
 		accountResp, err := client.ProvisionAccount(account1.ID, nil)
@@ -518,7 +518,7 @@ func TestProvisionAccount(t *testing.T) {
 
 	t.Run("while deleting", func(t *testing.T) {
 		account1.State = model.AccountStateDeletionRequested
-		err = sqlStore.UpdateAccount(account1.Account)
+		err = sqlStore.UpdateAccount(account1)
 		require.NoError(t, err)
 
 		accountResp, err := client.ProvisionAccount(account1.ID, nil)
@@ -557,7 +557,7 @@ func TestDeleteCluster(t *testing.T) {
 
 	t.Run("while locked", func(t *testing.T) {
 		account1.State = model.AccountStateStable
-		err = sqlStore.UpdateAccount(account1.Account)
+		err = sqlStore.UpdateAccount(account1)
 		require.NoError(t, err)
 
 		lockerID := model.NewID()
@@ -604,7 +604,7 @@ func TestDeleteCluster(t *testing.T) {
 		for _, state := range states {
 			t.Run(state, func(t *testing.T) {
 				account1.State = state
-				err = sqlStore.UpdateAccount(account1.Account)
+				err = sqlStore.UpdateAccount(account1)
 				require.NoError(t, err)
 
 				err = client.DeleteAccount(account1.ID)

@@ -15,14 +15,14 @@ import (
 	"github.com/pkg/errors"
 )
 
-// Client is the programmatic interface to the provisioning server API.
+// Client is the programmatic interface to the genesis server API.
 type Client struct {
 	address    string
 	headers    map[string]string
 	httpClient *http.Client
 }
 
-// NewClient creates a client to the provisioning server at the given address.
+// NewClient creates a client to the genesis server at the given address.
 func NewClient(address string) *Client {
 	return &Client{
 		address:    address,
@@ -31,7 +31,7 @@ func NewClient(address string) *Client {
 	}
 }
 
-// NewClientWithHeaders creates a client to the provisioning server at the given
+// NewClientWithHeaders creates a client to the genesis server at the given
 // address and uses the provided headers.
 func NewClientWithHeaders(address string, headers map[string]string) *Client {
 	return &Client{
@@ -113,7 +113,7 @@ func (c *Client) doDelete(u string) (*http.Response, error) {
 }
 
 // CreateAccount requests the creation of an account from the configured genesis server.
-func (c *Client) CreateAccount(request *CreateAccountRequest) (*AccountDTO, error) {
+func (c *Client) CreateAccount(request *CreateAccountRequest) (*Account, error) {
 	resp, err := c.doPost(c.buildURL("/api/accounts"), request)
 	if err != nil {
 		return nil, err
@@ -122,7 +122,7 @@ func (c *Client) CreateAccount(request *CreateAccountRequest) (*AccountDTO, erro
 
 	switch resp.StatusCode {
 	case http.StatusAccepted:
-		return AccountDTOFromReader(resp.Body)
+		return AccountFromReader(resp.Body)
 
 	default:
 		return nil, errors.Errorf("failed with status code %d", resp.StatusCode)
@@ -147,8 +147,8 @@ func (c *Client) RetryCreateAccount(accountID string) error {
 }
 
 // ProvisionAccount provisions k8s operators and Helm charts on a
-// account from the configured provisioning server.
-func (c *Client) ProvisionAccount(accountID string, request *ProvisionAccountRequest) (*AccountDTO, error) {
+// account from the configured genesis server.
+func (c *Client) ProvisionAccount(accountID string, request *ProvisionAccountRequest) (*Account, error) {
 	resp, err := c.doPost(c.buildURL("/api/account/%s/provision", accountID), request)
 	if err != nil {
 		return nil, err
@@ -157,7 +157,7 @@ func (c *Client) ProvisionAccount(accountID string, request *ProvisionAccountReq
 
 	switch resp.StatusCode {
 	case http.StatusAccepted:
-		return AccountDTOFromReader(resp.Body)
+		return AccountFromReader(resp.Body)
 
 	default:
 		return nil, errors.Errorf("failed with status code %d", resp.StatusCode)
@@ -165,7 +165,7 @@ func (c *Client) ProvisionAccount(accountID string, request *ProvisionAccountReq
 }
 
 // GetAccount fetches the specified account from the configured genesis server.
-func (c *Client) GetAccount(accountID string) (*AccountDTO, error) {
+func (c *Client) GetAccount(accountID string) (*Account, error) {
 	resp, err := c.doGet(c.buildURL("/api/account/%s", accountID))
 	if err != nil {
 		return nil, err
@@ -174,7 +174,7 @@ func (c *Client) GetAccount(accountID string) (*AccountDTO, error) {
 
 	switch resp.StatusCode {
 	case http.StatusOK:
-		return AccountDTOFromReader(resp.Body)
+		return AccountFromReader(resp.Body)
 
 	case http.StatusNotFound:
 		return nil, nil
@@ -184,8 +184,8 @@ func (c *Client) GetAccount(accountID string) (*AccountDTO, error) {
 	}
 }
 
-// GetAccounts fetches the list of accounts from the configured provisioning server.
-func (c *Client) GetAccounts(request *GetAccountsRequest) ([]*AccountDTO, error) {
+// GetAccounts fetches the list of accounts from the configured genesis server.
+func (c *Client) GetAccounts(request *GetAccountsRequest) ([]*Account, error) {
 	u, err := url.Parse(c.buildURL("/api/accounts"))
 	if err != nil {
 		return nil, err
@@ -201,7 +201,7 @@ func (c *Client) GetAccounts(request *GetAccountsRequest) ([]*AccountDTO, error)
 
 	switch resp.StatusCode {
 	case http.StatusOK:
-		return AccountDTOsFromReader(resp.Body)
+		return AccountsFromReader(resp.Body)
 
 	default:
 		return nil, errors.Errorf("failed with status code %d", resp.StatusCode)

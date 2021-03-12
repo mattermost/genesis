@@ -14,7 +14,7 @@ const (
 	TypeAccount = "account"
 )
 
-// Webhook is
+// Webhook represents a genesis webhook
 type Webhook struct {
 	ID       string
 	OwnerID  string

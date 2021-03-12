@@ -53,23 +53,28 @@ func parseBool(u *url.URL, name string, defaultValue bool) (bool, error) {
 	return value, nil
 }
 
-func parsePaging(u *url.URL) (int, int, bool, error) {
+func parsePaging(u *url.URL) (int, int, bool, bool, error) {
 	page, err := parseInt(u, "page", 0)
 	if err != nil {
-		return 0, 0, false, err
+		return 0, 0, false, false, err
 	}
 
 	perPage, err := parseInt(u, "per_page", 100)
 	if err != nil {
-		return 0, 0, false, err
+		return 0, 0, false, false, err
 	}
 
 	includeDeleted, err := parseBool(u, "include_deleted", false)
 	if err != nil {
-		return 0, 0, false, err
+		return 0, 0, false, false, err
 	}
 
-	return page, perPage, includeDeleted, nil
+	freeSubnets, err := parseBool(u, "show_free", false)
+	if err != nil {
+		return 0, 0, false, false, err
+	}
+
+	return page, perPage, includeDeleted, freeSubnets, nil
 }
 
 func parseGroupConfig(u *url.URL) (bool, bool, error) {

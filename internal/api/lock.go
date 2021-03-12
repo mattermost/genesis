@@ -12,14 +12,14 @@ import (
 )
 
 // lockAccount synchronizes access to the given account across potentially
-// multiple provisioning servers.
-func lockAccount(c *Context, accountID string) (*model.AccountDTO, int, func()) {
-	accountDTO, err := c.Store.GetAccountDTO(accountID)
+// multiple genesis servers.
+func lockAccount(c *Context, accountID string) (*model.Account, int, func()) {
+	account, err := c.Store.GetAccount(accountID)
 	if err != nil {
 		c.Logger.WithError(err).Error("failed to query account")
 		return nil, http.StatusInternalServerError, nil
 	}
-	if accountDTO == nil {
+	if account == nil {
 		return nil, http.StatusNotFound, nil
 	}
 
@@ -34,9 +34,9 @@ func lockAccount(c *Context, accountID string) (*model.AccountDTO, int, func()) 
 
 	unlockOnce := sync.Once{}
 
-	return accountDTO, 0, func() {
+	return account, 0, func() {
 		unlockOnce.Do(func() {
-			unlocked, err := c.Store.UnlockAccount(accountDTO.ID, c.RequestID, false)
+			unlocked, err := c.Store.UnlockAccount(account.ID, c.RequestID, false)
 			if err != nil {
 				c.Logger.WithError(err).Errorf("failed to unlock account")
 			} else if unlocked != true {

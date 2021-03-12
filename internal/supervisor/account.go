@@ -91,7 +91,7 @@ func (s *AccountSupervisor) Supervise(account *model.Account) {
 	defer lock.Unlock()
 
 	// Before working on the account, it is crucial that we ensure that it was
-	// not updated to a new state by another provisioning server.
+	// not updated to a new state by another genesis server.
 	originalState := account.State
 	account, err := s.store.GetAccount(account.ID)
 	if err != nil {
@@ -182,7 +182,10 @@ func (s *AccountSupervisor) createAccount(account *model.Account, logger log.Fie
 	}
 
 	logger.Info("Finished creating account")
-	return s.provisionAccount(account, logger)
+	if account.AccountMetadata.Provision {
+		return s.provisionAccount(account, logger)
+	}
+	return model.AccountStateStable
 }
 
 func (s *AccountSupervisor) provisionAccount(account *model.Account, logger log.FieldLogger) string {

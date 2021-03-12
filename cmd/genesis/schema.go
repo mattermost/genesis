@@ -12,12 +12,12 @@ import (
 
 func init() {
 	schemaCmd.AddCommand(schemaMigrateCmd)
-	schemaCmd.PersistentFlags().String("database", "sqlite://genesis.db", "The database backing the provisioning server.")
+	schemaCmd.PersistentFlags().String("database", "sqlite://genesis.db", "The database backing the genesis server.")
 }
 
 var schemaCmd = &cobra.Command{
 	Use:   "schema",
-	Short: "Manipulate the schema used by the provisioning server.",
+	Short: "Manipulate the schema used by the genesis server.",
 }
 
 func sqlStore(command *cobra.Command) (*store.SQLStore, error) {

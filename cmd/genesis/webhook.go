@@ -14,7 +14,7 @@ import (
 )
 
 func init() {
-	webhookCmd.PersistentFlags().String("server", defaultLocalServerAPI, "The provisioning server whose API will be queried.")
+	webhookCmd.PersistentFlags().String("server", defaultLocalServerAPI, "The genesis server whose API will be queried.")
 
 	webhookCreateCmd.Flags().String("owner", "", "An opaque identifier describing the owner of the webhook.")
 	webhookCreateCmd.Flags().String("url", "", "The callback URL of the webhook.")
@@ -41,7 +41,7 @@ func init() {
 
 var webhookCmd = &cobra.Command{
 	Use:   "webhook",
-	Short: "Manipulate webhooks managed by the provisioning server.",
+	Short: "Manipulate webhooks managed by the genesis server.",
 }
 
 var webhookCreateCmd = &cobra.Command{
