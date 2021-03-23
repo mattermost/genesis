@@ -33,8 +33,8 @@ func (c *Client) GetCloudEnvironmentName() (string, error) {
 }
 
 // GetAccountAliases returns the AWS account name aliases.
-func (a *Client) GetAccountAliases() (*iam.ListAccountAliasesOutput, error) {
-	accountAliases, err := a.Service().iam.ListAccountAliases(&iam.ListAccountAliasesInput{})
+func (c *Client) GetAccountAliases() (*iam.ListAccountAliasesOutput, error) {
+	accountAliases, err := c.Service().iam.ListAccountAliases(&iam.ListAccountAliasesInput{})
 	if err != nil {
 		return nil, errors.Wrap(err, "unable to get AWS account name aliases")
 	}

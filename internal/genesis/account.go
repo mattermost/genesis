@@ -12,7 +12,7 @@ import (
 )
 
 // createAccount is used to create new AWS accounts
-func createAccount(provisioner *GenesisProvisioner, account *model.Account, logger *logrus.Entry, awsClient awstools.AWS) error {
+func createAccount(provisioner *GenProvisioner, account *model.Account, logger *logrus.Entry, awsClient awstools.AWS) error {
 	logger.Infof("Creating account %s", account.ID)
 
 	awsCreds, err := awsClient.AssumeRole(fmt.Sprintf("arn:aws:iam::%s:role/%s", provisioner.controlTowerAccountID, provisioner.controlTowerRole))
@@ -82,12 +82,12 @@ func createAccount(provisioner *GenesisProvisioner, account *model.Account, logg
 }
 
 // provisionAccount is used to provision AWS accounts
-func provisionAccount(provisioner *GenesisProvisioner, account *model.Account, logger *logrus.Entry, awsClient awstools.AWS) error {
+func provisionAccount(provisioner *GenProvisioner, account *model.Account, logger *logrus.Entry, awsClient awstools.AWS) error {
 	return nil
 }
 
 // deleteAccount is used to delete AWS accounts
-func deleteAccount(provisioner *GenesisProvisioner, account *model.Account, logger *logrus.Entry, awsClient awstools.AWS) error {
+func deleteAccount(provisioner *GenProvisioner, account *model.Account, logger *logrus.Entry, awsClient awstools.AWS) error {
 
 	logger.Infof("Deleting account with physical id %s", account.ProviderMetadataAWS.AWSAccountID)
 	awsCreds, err := awsClient.AssumeRole(fmt.Sprintf("arn:aws:iam::%s:role/%s", provisioner.controlTowerAccountID, provisioner.controlTowerRole))

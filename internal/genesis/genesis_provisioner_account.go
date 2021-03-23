@@ -10,13 +10,14 @@ import (
 )
 
 // TODO: will be used soon
+
 // PrepareAccount ensures an account object is ready for provisioning.
-func (provisioner *GenesisProvisioner) PrepareAccount(account *model.Account) bool {
+func (provisioner *GenProvisioner) PrepareAccount(account *model.Account) bool {
 	return true
 }
 
 // CreateAccount creates an account using AWS API and terraform.
-func (provisioner *GenesisProvisioner) CreateAccount(account *model.Account, awsClient aws.AWS) error {
+func (provisioner *GenProvisioner) CreateAccount(account *model.Account, awsClient aws.AWS) error {
 	logger := provisioner.logger.WithField("account", account.ID)
 	err := createAccount(provisioner, account, logger, awsClient)
 	if err != nil {
@@ -27,7 +28,7 @@ func (provisioner *GenesisProvisioner) CreateAccount(account *model.Account, aws
 }
 
 // DeleteAccount deletes an account using AWS API and terraform.
-func (provisioner *GenesisProvisioner) DeleteAccount(account *model.Account, awsClient aws.AWS) error {
+func (provisioner *GenProvisioner) DeleteAccount(account *model.Account, awsClient aws.AWS) error {
 	logger := provisioner.logger.WithField("account", account.ID)
 	err := deleteAccount(provisioner, account, logger, awsClient)
 	if err != nil {
@@ -37,7 +38,7 @@ func (provisioner *GenesisProvisioner) DeleteAccount(account *model.Account, aws
 }
 
 // ProvisionAccount deletes an account using AWS API and terraform.
-func (provisioner *GenesisProvisioner) ProvisionAccount(account *model.Account, awsClient aws.AWS) error {
+func (provisioner *GenProvisioner) ProvisionAccount(account *model.Account, awsClient aws.AWS) error {
 	logger := provisioner.logger.WithField("account", account.ID)
 	logger.Infof("Provisioning account %s", account.ID)
 	return nil

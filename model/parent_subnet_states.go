@@ -84,7 +84,7 @@ func validTransitionToParentSubnetStateSplitRequested(currentState string) bool 
 // ParentSubnetStateReport is a report of all account requests states.
 type ParentSubnetStateReport []StateReportEntry
 
-// GetAccountRequestStateReport returns a AccountStateReport based on the current
+// GetParentSubnetRequestStateReport returns a AccountStateReport based on the current
 // model of account states.
 func GetParentSubnetRequestStateReport() ParentSubnetStateReport {
 	report := ParentSubnetStateReport{}

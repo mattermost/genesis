@@ -4,8 +4,8 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-// GenesisProvisioner provisions accounts using AWS API and Terraform.
-type GenesisProvisioner struct {
+// GenProvisioner provisions accounts using AWS API and Terraform.
+type GenProvisioner struct {
 	ssoUserEmail          string
 	ssoFirstName          string
 	ssoLastName           string
@@ -15,11 +15,11 @@ type GenesisProvisioner struct {
 	logger                log.FieldLogger
 }
 
-// NewGenesisProvisioner creates a new GenesisProvisioner.
-func NewGenesisProvisioner(ssoUserEmail, ssoFirstName, ssoLastName, managedOU, controlTowerRole, controlTowerAccountID string, logger log.FieldLogger) *GenesisProvisioner {
+// NewGenesisProvisioner creates a new GenProvisioner.
+func NewGenesisProvisioner(ssoUserEmail, ssoFirstName, ssoLastName, managedOU, controlTowerRole, controlTowerAccountID string, logger log.FieldLogger) *GenProvisioner {
 	logger = logger.WithField("provisioner", "genesis")
 
-	return &GenesisProvisioner{
+	return &GenProvisioner{
 		ssoUserEmail:          ssoUserEmail,
 		ssoFirstName:          ssoFirstName,
 		ssoLastName:           ssoLastName,

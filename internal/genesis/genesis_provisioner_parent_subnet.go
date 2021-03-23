@@ -13,7 +13,7 @@ import (
 )
 
 // AddParentSubnet adds a parent subnet.
-func (provisioner *GenesisProvisioner) AddParentSubnet(subnet *model.ParentSubnet) error {
+func (provisioner *GenProvisioner) AddParentSubnet(subnet *model.ParentSubnet) error {
 	logger := provisioner.logger.WithField("subnet", subnet)
 	logger.Infof("Adding subnet %s", subnet.ID)
 
@@ -21,7 +21,7 @@ func (provisioner *GenesisProvisioner) AddParentSubnet(subnet *model.ParentSubne
 }
 
 // SplitParentSubnet splits a parent subnet into usable provisioning VPCs.
-func (provisioner *GenesisProvisioner) SplitParentSubnet(subnet *model.ParentSubnet) ([]net.IPNet, error) {
+func (provisioner *GenProvisioner) SplitParentSubnet(subnet *model.ParentSubnet) ([]net.IPNet, error) {
 	logger := provisioner.logger.WithField("subnet", subnet)
 	logger.Infof("Splitting subnet %s", subnet.CIDR)
 	_, base, err := net.ParseCIDR(subnet.CIDR)
