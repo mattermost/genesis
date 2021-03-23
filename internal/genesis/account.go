@@ -6,6 +6,7 @@ import (
 	sdkAWS "github.com/aws/aws-sdk-go/aws"
 	awstools "github.com/mattermost/genesis/internal/aws"
 	model "github.com/mattermost/genesis/model"
+	"github.com/pkg/errors"
 
 	"github.com/sirupsen/logrus"
 )
@@ -16,7 +17,7 @@ func createAccount(provisioner *GenesisProvisioner, account *model.Account, logg
 
 	awsCreds, err := awsClient.AssumeRole(fmt.Sprintf("arn:aws:iam::%s:role/%s", provisioner.controlTowerAccountID, provisioner.controlTowerRole))
 	if err != nil {
-		return err
+		return errors.Wrap(err, "failed to assume control tower iam role")
 	}
 
 	awsConfig := &sdkAWS.Config{
@@ -28,17 +29,18 @@ func createAccount(provisioner *GenesisProvisioner, account *model.Account, logg
 
 	err = awsClientControlTower.ProvisionServiceCatalogProduct(provisioner.ssoUserEmail, provisioner.ssoFirstName, provisioner.ssoLastName, provisioner.managedOU, account)
 	if err != nil {
-		return err
+		return errors.Wrap(err, "failed to provision service catalog product")
 	}
 
 	wait := 3600
 	logger.Infof("Waiting up to %d seconds for account to become ready...", wait)
 	err = awsClientControlTower.WaitForAccountReadiness(account, wait)
 	if err != nil {
+		logger.WithError(err).Error("failed while waiting for new account to get ready")
 		logger.Info("Trying to get AWS Account details")
 		err = awsClientControlTower.GetAccountDetails(account)
 		if err != nil {
-			return err
+			return errors.Wrap(err, "failed to get account details")
 		}
 		return err
 	}
@@ -46,7 +48,7 @@ func createAccount(provisioner *GenesisProvisioner, account *model.Account, logg
 	logger.Info("Getting AWS Account physical ID")
 	err = awsClientControlTower.GetAccountDetails(account)
 	if err != nil {
-		return err
+		return errors.Wrap(err, "failed to get AWS account details")
 	}
 	logger.Infof("Creating provisioning IAM role in account %s", account.ProviderMetadataAWS.AWSAccountID)
 
@@ -54,7 +56,7 @@ func createAccount(provisioner *GenesisProvisioner, account *model.Account, logg
 
 	genesisAccount, err := awsClient.GetAccountID()
 	if err != nil {
-		return err
+		return errors.Wrap(err, "failed to get AWS account physical ID")
 	}
 	logger.Infof("Code running in account %s", genesisAccount)
 
@@ -69,16 +71,11 @@ func createAccount(provisioner *GenesisProvisioner, account *model.Account, logg
 		MaxRetries:  sdkAWS.Int(awstools.DefaultAWSClientRetries),
 	}
 	tempDestinationAWSClient := awstools.NewAWSClientWithConfig(tempAWSConfig, logger)
-	destinationAccount, err := tempDestinationAWSClient.GetAccountID()
-	if err != nil {
-		return err
-	}
-	logger.Infof("Code running in account %s", destinationAccount)
 
 	logger.Infof("Provisioning IAM role in account %s", account.ProviderMetadataAWS.AWSAccountID)
 	err = tempDestinationAWSClient.CreateProvisioningIAMRole(genesisAccount)
 	if err != nil {
-		return err
+		return errors.Wrap(err, "failed to create provisioning IAM role in new account")
 	}
 
 	return nil
@@ -107,7 +104,7 @@ func deleteAccount(provisioner *GenesisProvisioner, account *model.Account, logg
 
 	err = awsClientControlTower.DeleteServiceCatalogProduct(account.ProviderMetadataAWS.AccountProductID)
 	if err != nil {
-		return err
+		return errors.Wrap(err, "failed to delete account")
 	}
 	return nil
 }

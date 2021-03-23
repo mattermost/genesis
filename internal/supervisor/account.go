@@ -81,7 +81,7 @@ func (s *AccountSupervisor) Do() error {
 // Supervise schedules the required work on the given account.
 func (s *AccountSupervisor) Supervise(account *model.Account) {
 	logger := s.logger.WithFields(log.Fields{
-		"acccount": account.ID,
+		"account": account.ID,
 	})
 
 	lock := newAccountLock(account.ID, s.instanceID, s.store, logger)
@@ -158,6 +158,8 @@ func (s *AccountSupervisor) transitionAccount(account *model.Account, logger log
 		return s.provisionAccount(account, logger)
 	case model.AccountStateDeletionRequested:
 		return s.deleteAccount(account, logger)
+	case model.AccountStateRefreshMetadata:
+		return s.refreshAccountMetadata(account, logger)
 	default:
 		logger.Warnf("Found account pending work in unexpected state %s", account.State)
 		return account.State
@@ -203,7 +205,7 @@ func (s *AccountSupervisor) refreshAccountMetadata(account *model.Account, logge
 	err := s.store.UpdateAccount(account)
 	if err != nil {
 		logger.WithError(err).Error("Failed to save updated account metadata")
-		return model.AccountStateRefreshMetadata
+		return model.AccountStateProvisioningFailed
 	}
 
 	return model.AccountStateStable
