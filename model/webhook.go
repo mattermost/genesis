@@ -12,6 +12,9 @@ import (
 const (
 	// TypeAccount is the string value that represents an account
 	TypeAccount = "account"
+
+	// TypeParentSubnet is the string value that represents a parent subnet
+	TypeParentSubnet = "parent subnet"
 )
 
 // Webhook represents a genesis webhook

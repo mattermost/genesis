@@ -73,4 +73,38 @@ var migrations = []migration{
 
 		return nil
 	}},
+	{semver.MustParse("0.1.0"), semver.MustParse("0.2.0"), func(e execer) error {
+		_, err := e.Exec(`
+			CREATE TABLE ParentSubnet (
+				ID TEXT PRIMARY KEY,
+				CIDR TEXT NOT NULL,
+				State TEXT NOT NULL,
+				SplitRange INT NOT NULL,
+				CreateAt BIGINT NOT NULL,
+				LockAcquiredBy CHAR(26) NULL,
+				LockAcquiredAt BIGINT NOT NULL
+			);
+		`)
+		if err != nil {
+			return err
+		}
+
+		_, err = e.Exec(`
+			CREATE TABLE SubnetPool (
+				ID TEXT PRIMARY KEY,
+				CIDR TEXT NOT NULL,
+				Used BOOLEAN NOT NULL,
+				ParentSubnet TEXT NOT NULL,
+				SubnetMetadataRaw BYTEA NULL,
+				CreateAt BIGINT NOT NULL,
+				LockAcquiredBy CHAR(26) NULL,
+				LockAcquiredAt BIGINT NOT NULL
+			);
+	`)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	}},
 }

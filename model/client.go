@@ -329,3 +329,108 @@ func (c *Client) makeSecurityCall(resourceType, id, securityType, action string)
 	}
 
 }
+
+// AddParentSubnet requests the addition of a parent subnet from the configured genesis server.
+func (c *Client) AddParentSubnet(request *AddParentSubnetRequest) (*ParentSubnet, error) {
+	resp, err := c.doPost(c.buildURL("/api/parentsubnets"), request)
+	if err != nil {
+		return nil, err
+	}
+	defer closeBody(resp)
+
+	switch resp.StatusCode {
+	case http.StatusAccepted:
+		return ParentSubnetFromReader(resp.Body)
+
+	default:
+		return nil, errors.Errorf("failed with status code %d", resp.StatusCode)
+	}
+}
+
+// GetParentSubnets fetches the list of parent subnets from the configured genesis server.
+func (c *Client) GetParentSubnets(request *GetParentSubnetsRequest) ([]*ParentSubnet, error) {
+	u, err := url.Parse(c.buildURL("/api/parentsubnets"))
+	if err != nil {
+		return nil, err
+	}
+
+	request.ApplyToURL(u)
+
+	resp, err := c.doGet(u.String())
+	if err != nil {
+		return nil, err
+	}
+	defer closeBody(resp)
+
+	switch resp.StatusCode {
+	case http.StatusOK:
+		return ParentSubnetsFromReader(resp.Body)
+
+	default:
+		return nil, errors.Errorf("failed with status code %d", resp.StatusCode)
+	}
+}
+
+// GetParentSubnet fetches the specified parent subnet from the configured genesis server.
+func (c *Client) GetParentSubnet(subnet string) (*ParentSubnet, error) {
+	resp, err := c.doGet(c.buildURL("/api/parentsubnet/%s", subnet))
+	if err != nil {
+		return nil, err
+	}
+	defer closeBody(resp)
+
+	switch resp.StatusCode {
+	case http.StatusOK:
+		return ParentSubnetFromReader(resp.Body)
+
+	case http.StatusNotFound:
+		return nil, nil
+
+	default:
+		return nil, errors.Errorf("failed with status code %d", resp.StatusCode)
+	}
+}
+
+// GetSubnets fetches the list of subnets from the configured genesis server.
+func (c *Client) GetSubnets(request *GetSubnetsRequest) ([]*Subnet, error) {
+	u, err := url.Parse(c.buildURL("/api/subnets"))
+	if err != nil {
+		return nil, err
+	}
+
+	request.ApplyToURL(u)
+
+	resp, err := c.doGet(u.String())
+	if err != nil {
+		return nil, err
+	}
+	defer closeBody(resp)
+
+	switch resp.StatusCode {
+	case http.StatusOK:
+		return SubnetsFromReader(resp.Body)
+
+	default:
+		return nil, errors.Errorf("failed with status code %d", resp.StatusCode)
+	}
+}
+
+// GetSubnet fetches the specified subnet from the configured genesis server.
+func (c *Client) GetSubnet(subnet string) (*Subnet, error) {
+	resp, err := c.doGet(c.buildURL("/api/subnet/%s", subnet))
+	if err != nil {
+		return nil, err
+	}
+	defer closeBody(resp)
+
+	switch resp.StatusCode {
+	case http.StatusOK:
+		return SubnetFromReader(resp.Body)
+
+	case http.StatusNotFound:
+		return nil, nil
+
+	default:
+		return nil, errors.Errorf("failed with status code %d", resp.StatusCode)
+	}
+}

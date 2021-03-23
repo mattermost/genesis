@@ -29,6 +29,8 @@ func init() {
 	rootCmd.AddCommand(schemaCmd)
 	rootCmd.AddCommand(webhookCmd)
 	rootCmd.AddCommand(securityCmd)
+	rootCmd.AddCommand(parentSubnetCmd)
+	rootCmd.AddCommand(subnetCmd)
 }
 
 func main() {
