@@ -78,7 +78,6 @@ var migrations = []migration{
 			CREATE TABLE ParentSubnet (
 				ID TEXT PRIMARY KEY,
 				CIDR TEXT NOT NULL,
-				State TEXT NOT NULL,
 				SplitRange INT NOT NULL,
 				CreateAt BIGINT NOT NULL,
 				LockAcquiredBy CHAR(26) NULL,

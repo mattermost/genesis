@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
+	"github.com/mattermost/genesis/internal/genesis"
 	"github.com/mattermost/genesis/internal/webhook"
 	"github.com/mattermost/genesis/model"
 )
@@ -90,12 +91,19 @@ func handleAddParentSubnet(c *Context, w http.ResponseWriter, r *http.Request) {
 	parentSubnet := model.ParentSubnet{
 		CIDR:       addParentSubnetRequest.CIDR,
 		SplitRange: addParentSubnetRequest.SplitRange,
-		State:      model.ParentSubnetStateAdditionRequested,
 	}
 
-	err = c.Store.AddParentSubnet(&parentSubnet)
+	parentSubnet.ID = model.NewID()
+
+	subnets, err := genesis.SplitParentSubnet(&parentSubnet)
 	if err != nil {
-		c.Logger.WithError(err).Error("failed to create account")
+		c.Logger.WithError(err).Error("Failed to split parent subnet")
+		return
+	}
+
+	err = c.Store.AddParentSubnet(&parentSubnet, &subnets)
+	if err != nil {
+		c.Logger.WithError(err).Error("failed to add parent subnet")
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -103,74 +111,15 @@ func handleAddParentSubnet(c *Context, w http.ResponseWriter, r *http.Request) {
 	webhookPayload := &model.WebhookPayload{
 		Type:      model.TypeParentSubnet,
 		ID:        parentSubnet.ID,
-		NewState:  model.ParentSubnetStateAdditionRequested,
-		OldState:  "n/a",
 		Timestamp: time.Now().UnixNano(),
 		ExtraData: map[string]string{"CIDR": parentSubnet.CIDR},
 	}
-	err = webhook.SendToAllWebhooks(c.Store, webhookPayload, c.Logger.WithField("webhookEvent", webhookPayload.NewState))
+	err = webhook.SendToAllWebhooks(c.Store, webhookPayload, c.Logger.WithField("webhookEvent", nil))
 	if err != nil {
 		c.Logger.WithError(err).Error("Unable to process and send webhooks")
 	}
 
-	c.Supervisor.Do()
-
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusAccepted)
 	outputJSON(c, w, parentSubnet)
-}
-
-// handleRetryAddParentSubnet responds to POST /api/parentsubnet/{parentsubnet}, retrying a previously
-// failed creation.
-func handleRetryAddParentSubnet(c *Context, w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	parentSubnet := vars["parentsubnet"]
-	c.Logger = c.Logger.WithField("parent-subnet", parentSubnet)
-
-	parentSub, status, unlockOnce := lockParentSubnet(c, parentSubnet)
-	if status != 0 {
-		w.WriteHeader(status)
-		return
-	}
-	defer unlockOnce()
-
-	newState := model.ParentSubnetStateAdditionRequested
-
-	if !parentSub.ValidTransitionState(newState) {
-		c.Logger.Warnf("unable to retry parent subnet creation while in state %s", parentSub.State)
-		w.WriteHeader(http.StatusBadRequest)
-		return
-	}
-
-	if parentSub.State != newState {
-		webhookPayload := &model.WebhookPayload{
-			Type:      model.TypeAccount,
-			ID:        parentSub.ID,
-			NewState:  newState,
-			OldState:  parentSub.State,
-			Timestamp: time.Now().UnixNano(),
-			ExtraData: map[string]string{},
-		}
-		parentSub.State = newState
-
-		err := c.Store.UpdateParentSubnet(parentSub)
-		if err != nil {
-			c.Logger.WithError(err).Errorf("failed to retry parent subnet creation")
-			w.WriteHeader(http.StatusInternalServerError)
-			return
-		}
-
-		err = webhook.SendToAllWebhooks(c.Store, webhookPayload, c.Logger.WithField("webhookEvent", webhookPayload.NewState))
-		if err != nil {
-			c.Logger.WithError(err).Error("Unable to process and send webhooks")
-		}
-	}
-
-	// Notify even if we didn't make changes, to expedite even the no-op operations above.
-	unlockOnce()
-	c.Supervisor.Do()
-
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusAccepted)
-	outputJSON(c, w, parentSub)
 }

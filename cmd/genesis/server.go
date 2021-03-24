@@ -60,7 +60,6 @@ func init() {
 	// Supervisors
 	serverCmd.PersistentFlags().Int("poll", 30, "The interval in seconds to poll for background work.")
 	serverCmd.PersistentFlags().Bool("account-supervisor", true, "Whether this server will run an account supervisor or not.")
-	serverCmd.PersistentFlags().Bool("parent-subnet-supervisor", true, "Whether this server will run a parent subnet supervisor or not.")
 }
 
 var serverCmd = &cobra.Command{
@@ -99,8 +98,7 @@ var serverCmd = &cobra.Command{
 		}
 
 		accountSupervisor, _ := command.Flags().GetBool("account-supervisor")
-		parentSubnetSupervisor, _ := command.Flags().GetBool("parent-subnet-supervisor")
-		if !accountSupervisor && !parentSubnetSupervisor {
+		if !accountSupervisor {
 			logger.Warn("Server will be running with no supervisors. Only API functionality will work.")
 		}
 
@@ -136,7 +134,6 @@ var serverCmd = &cobra.Command{
 		managedOU, _ := command.Flags().GetString("managed-ou")
 		controlTowerRole, _ := command.Flags().GetString("control-tower-role")
 		controlTowerAccountID, _ := command.Flags().GetString("control-tower-account")
-
 		// Setup the provisioner for actually effecting changes to enterprise resources.
 		genesisProvisioner := genesis.NewGenesisProvisioner(
 			ssoUserEmail,
@@ -151,9 +148,6 @@ var serverCmd = &cobra.Command{
 		var multiDoer supervisor.MultiDoer
 		if accountSupervisor {
 			multiDoer = append(multiDoer, supervisor.NewAccountSupervisor(sqlStore, genesisProvisioner, awsClient, instanceID, logger))
-		}
-		if parentSubnetSupervisor {
-			multiDoer = append(multiDoer, supervisor.NewParentSubnetSupervisor(sqlStore, genesisProvisioner, instanceID, logger))
 		}
 
 		// Setup the supervisor to effect any requested changes. It is wrapped in a

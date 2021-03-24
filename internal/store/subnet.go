@@ -103,52 +103,33 @@ func (sqlStore *SQLStore) applySubnetsFilter(builder sq.SelectBuilder, filter *m
 	return builder
 }
 
-// AddSubnet records the given subnet to the database.
-func (sqlStore *SQLStore) AddSubnet(subnet *model.Subnet) error {
-	tx, err := sqlStore.beginTransaction(sqlStore.db)
-	if err != nil {
-		return errors.Wrap(err, "failed to begin transaction")
-	}
-	defer tx.RollbackUnlessCommitted()
-
-	err = sqlStore.addSubnet(tx, subnet)
-	if err != nil {
-		return errors.Wrap(err, "failed to add subnet")
-	}
-
-	err = tx.Commit()
-	if err != nil {
-		return errors.Wrap(err, "failed to commit the transaction")
-	}
-
-	return nil
-}
-
 // addSubnet records the given subnet to the database.
-func (sqlStore *SQLStore) addSubnet(execer execer, subnet *model.Subnet) error {
-	subnet.CreateAt = GetMillis()
-	subnet.ID = model.NewID()
+func (sqlStore *SQLStore) addSubnets(execer execer, subnets *[]model.Subnet) error {
+	for _, subnet := range *subnets {
+		subnet.CreateAt = GetMillis()
+		subnet.ID = model.NewID()
 
-	rawMetadata, err := buildSubnetRawMetadata(subnet)
-	if err != nil {
-		return errors.Wrap(err, "unable to build raw cluster metadata")
-	}
+		rawMetadata, err := buildSubnetRawMetadata(&subnet)
+		if err != nil {
+			return errors.Wrap(err, "unable to build raw cluster metadata")
+		}
 
-	_, err = sqlStore.execBuilder(execer, sq.
-		Insert("SubnetPool").
-		SetMap(map[string]interface{}{
-			"ID":                subnet.ID,
-			"CIDR":              subnet.CIDR,
-			"Used":              subnet.Used,
-			"ParentSubnet":      subnet.ParentSubnet,
-			"SubnetMetadataRaw": rawMetadata.SubnetMetadataRaw,
-			"CreateAt":          subnet.CreateAt,
-			"LockAcquiredBy":    nil,
-			"LockAcquiredAt":    0,
-		}),
-	)
-	if err != nil {
-		return errors.Wrap(err, "failed to create subnet")
+		_, err = sqlStore.execBuilder(execer, sq.
+			Insert("SubnetPool").
+			SetMap(map[string]interface{}{
+				"ID":                subnet.ID,
+				"CIDR":              subnet.CIDR,
+				"Used":              subnet.Used,
+				"ParentSubnet":      subnet.ParentSubnet,
+				"SubnetMetadataRaw": rawMetadata.SubnetMetadataRaw,
+				"CreateAt":          subnet.CreateAt,
+				"LockAcquiredBy":    nil,
+				"LockAcquiredAt":    0,
+			}),
+		)
+		if err != nil {
+			return errors.Wrap(err, "failed to add subnet")
+		}
 	}
 
 	return nil

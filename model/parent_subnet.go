@@ -13,7 +13,6 @@ import (
 type ParentSubnet struct {
 	ID             string
 	CIDR           string
-	State          string
 	SplitRange     int
 	CreateAt       int64
 	LockAcquiredBy *string

@@ -16,7 +16,7 @@ var parentSubnetSelect sq.SelectBuilder
 
 func init() {
 	parentSubnetSelect = sq.
-		Select("ParentSubnet.ID", "CIDR", "State", "SplitRange", "CreateAt",
+		Select("ParentSubnet.ID", "CIDR", "SplitRange", "CreateAt",
 			"LockAcquiredBy", "LockAcquiredAt").
 		From("ParentSubnet")
 }
@@ -81,26 +81,8 @@ func (sqlStore *SQLStore) applyParentSubnetsFilter(builder sq.SelectBuilder, fil
 	return builder
 }
 
-// GetUnlockedParentSubnetsPendingWork returns an unlocked parent subnet in a pending state.
-func (sqlStore *SQLStore) GetUnlockedParentSubnetsPendingWork() ([]*model.ParentSubnet, error) {
-	builder := parentSubnetSelect.
-		Where(sq.Eq{
-			"State": model.AllParentSubnetStatesPendingWork,
-		}).
-		Where("LockAcquiredAt = 0").
-		OrderBy("CreateAt ASC")
-
-	var rawParentSubnets rawParentSubnets
-	err := sqlStore.selectBuilder(sqlStore.db, &rawParentSubnets, builder)
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to query for accounts")
-	}
-
-	return rawParentSubnets.toParentSubnets()
-}
-
 // AddParentSubnet records the given parent subnet to the database.
-func (sqlStore *SQLStore) AddParentSubnet(parentSubnet *model.ParentSubnet) error {
+func (sqlStore *SQLStore) AddParentSubnet(parentSubnet *model.ParentSubnet, subnets *[]model.Subnet) error {
 	tx, err := sqlStore.beginTransaction(sqlStore.db)
 	if err != nil {
 		return errors.Wrap(err, "failed to begin transaction")
@@ -110,6 +92,11 @@ func (sqlStore *SQLStore) AddParentSubnet(parentSubnet *model.ParentSubnet) erro
 	err = sqlStore.addParentSubnet(tx, parentSubnet)
 	if err != nil {
 		return errors.Wrap(err, "failed to add parent subnet")
+	}
+
+	err = sqlStore.addSubnets(tx, subnets)
+	if err != nil {
+		return errors.Wrap(err, "failed to add subnets")
 	}
 
 	err = tx.Commit()
@@ -123,14 +110,12 @@ func (sqlStore *SQLStore) AddParentSubnet(parentSubnet *model.ParentSubnet) erro
 // addParentSubnet records the given parent subnet to the database.
 func (sqlStore *SQLStore) addParentSubnet(execer execer, parentSubnet *model.ParentSubnet) error {
 	parentSubnet.CreateAt = GetMillis()
-	parentSubnet.ID = model.NewID()
 
 	_, err := sqlStore.execBuilder(execer, sq.
 		Insert("ParentSubnet").
 		SetMap(map[string]interface{}{
 			"ID":             parentSubnet.ID,
 			"CIDR":           parentSubnet.CIDR,
-			"State":          parentSubnet.State,
 			"SplitRange":     parentSubnet.SplitRange,
 			"CreateAt":       parentSubnet.CreateAt,
 			"LockAcquiredBy": nil,
@@ -139,22 +124,6 @@ func (sqlStore *SQLStore) addParentSubnet(execer execer, parentSubnet *model.Par
 	)
 	if err != nil {
 		return errors.Wrap(err, "failed to create parent subnet")
-	}
-
-	return nil
-}
-
-// UpdateParentSubnet updates the given parent subnet in the database.
-func (sqlStore *SQLStore) UpdateParentSubnet(parentSubnet *model.ParentSubnet) error {
-	_, err := sqlStore.execBuilder(sqlStore.db, sq.
-		Update("ParentSubnet").
-		SetMap(map[string]interface{}{
-			"State": parentSubnet.State,
-		}).
-		Where("ID = ?", parentSubnet.ID),
-	)
-	if err != nil {
-		return errors.Wrap(err, "failed to update parent subnet")
 	}
 
 	return nil

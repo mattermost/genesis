@@ -33,14 +33,12 @@ type Store interface {
 
 	GetParentSubnet(id string) (*model.ParentSubnet, error)
 	GetParentSubnets(filter *model.ParentSubnetFilter) ([]*model.ParentSubnet, error)
-	AddParentSubnet(parentSubnet *model.ParentSubnet) error
-	UpdateParentSubnet(parentSubnet *model.ParentSubnet) error
+	AddParentSubnet(parentSubnet *model.ParentSubnet, subnets *[]model.Subnet) error
 	LockParentSubnet(subnet, lockerID string) (bool, error)
 	UnlockParentSubnet(subnet, lockerID string, force bool) (bool, error)
 
 	GetSubnet(id string) (*model.Subnet, error)
 	GetSubnets(filter *model.SubnetFilter) ([]*model.Subnet, error)
-	AddSubnet(Subnet *model.Subnet) error
 	UpdateSubnet(Subnet *model.Subnet) error
 }
 
