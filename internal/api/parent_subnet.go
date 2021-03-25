@@ -20,15 +20,15 @@ func initParentSubnet(apiRouter *mux.Router, context *Context) {
 		return newContextHandler(context, handler)
 	}
 
-	parentSubnetsRouter := apiRouter.PathPrefix("/parentsubnets").Subrouter()
+	parentSubnetsRouter := apiRouter.PathPrefix("/subnets/parent").Subrouter()
 	parentSubnetsRouter.Handle("", addContext(handleGetParentSubnets)).Methods("GET")
 	parentSubnetsRouter.Handle("", addContext(handleAddParentSubnet)).Methods("POST")
 
-	parentSubnetRouter := apiRouter.PathPrefix("/parentsubnet/{parentsubnet:[A-Za-z0-9]{26}}").Subrouter()
+	parentSubnetRouter := apiRouter.PathPrefix("/subnet/parent/{parentsubnet:[A-Za-z0-9]{26}}").Subrouter()
 	parentSubnetRouter.Handle("", addContext(handleGetParentSubnet)).Methods("GET")
 }
 
-// handleGetParentSubnet responds to GET /api/parentsubnet/{parentsubnet}, returning the parent subnet in question.
+// handleGetParentSubnet responds to GET /api/subnet/parent/{parentsubnet}, returning the parent subnet in question.
 func handleGetParentSubnet(c *Context, w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	subnetID := vars["parentsubnet"]
@@ -50,7 +50,7 @@ func handleGetParentSubnet(c *Context, w http.ResponseWriter, r *http.Request) {
 	outputJSON(c, w, parentSubnet)
 }
 
-// handleGetParentSubnets responds to GET /api/parentsubnets, returning the specified page of parent subnets.
+// handleGetParentSubnets responds to GET /api/subnets/parent, returning the specified page of parent subnets.
 func handleGetParentSubnets(c *Context, w http.ResponseWriter, r *http.Request) {
 	page, perPage, _, _, err := parsePaging(r.URL)
 	if err != nil {
@@ -79,7 +79,7 @@ func handleGetParentSubnets(c *Context, w http.ResponseWriter, r *http.Request) 
 	outputJSON(c, w, parentSubnets)
 }
 
-// handleAddParentSubnet responds to POST /api/parentsubnets, beginning the process of creating a new parent subnet.
+// handleAddParentSubnet responds to POST /api/subnets/parent, beginning the process of creating a new parent subnet.
 func handleAddParentSubnet(c *Context, w http.ResponseWriter, r *http.Request) {
 	addParentSubnetRequest, err := model.NewAddParentSubnetRequestFromReader(r.Body)
 	if err != nil {
@@ -120,6 +120,6 @@ func handleAddParentSubnet(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusAccepted)
+	w.WriteHeader(http.StatusCreated)
 	outputJSON(c, w, parentSubnet)
 }

@@ -13,14 +13,6 @@ import (
 	"github.com/mattermost/genesis/model"
 )
 
-// // AddParentSubnet adds a parent subnet.
-// func (provisioner *GenProvisioner) AddParentSubnet(subnet *model.ParentSubnet) error {
-// 	logger := provisioner.logger.WithField("subnet", subnet)
-// 	logger.Infof("Adding subnet %s", subnet.ID)
-
-// 	return nil
-// }
-
 // SplitParentSubnet splits a parent subnet into usable provisioning VPCs.
 func SplitParentSubnet(parentSubnet *model.ParentSubnet) ([]model.Subnet, error) {
 	logger := logger.WithField("parent-subnet", parentSubnet.ID)

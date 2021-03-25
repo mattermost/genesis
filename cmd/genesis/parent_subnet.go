@@ -25,7 +25,6 @@ func init() {
 
 	parentSubnetListCmd.Flags().Int("page", 0, "The page of subnets to fetch, starting at 0.")
 	parentSubnetListCmd.Flags().Int("per-page", 100, "The number of parent subnets to fetch per page.")
-	parentSubnetListCmd.Flags().Bool("include-deleted", false, "Whether to include deleted parent subnets.")
 	parentSubnetListCmd.Flags().Bool("table", false, "Whether to display the returned parent subnet list in a table or not")
 
 	parentSubnetCmd.AddCommand(parentSubnetAddCmd)
