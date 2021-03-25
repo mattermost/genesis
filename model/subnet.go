@@ -13,9 +13,9 @@ import (
 type Subnet struct {
 	ID             string
 	CIDR           string
-	Used           bool
+	AccountID      string
+	VPCID          string
 	ParentSubnet   string
-	SubnetMetadata *SubnetMetadata
 	CreateAt       int64
 	LockAcquiredBy *string
 	LockAcquiredAt int64

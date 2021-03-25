@@ -37,11 +37,9 @@ func SplitParentSubnet(parentSubnet *model.ParentSubnet) ([]model.Subnet, error)
 	var subnets []model.Subnet
 	for _, sub := range subs {
 		subnet := model.Subnet{
-			CIDR:           fmt.Sprintf("%s/%d", &sub.IP, parentSubnet.SplitRange),
-			Used:           false,
-			ParentSubnet:   parentSubnet.CIDR,
-			SubnetMetadata: &model.SubnetMetadata{},
-			CreateAt:       parentSubnet.CreateAt,
+			CIDR:         fmt.Sprintf("%s/%d", &sub.IP, parentSubnet.SplitRange),
+			ParentSubnet: parentSubnet.CIDR,
+			CreateAt:     parentSubnet.CreateAt,
 		}
 		subnets = append(subnets, subnet)
 

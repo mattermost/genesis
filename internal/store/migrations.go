@@ -92,9 +92,9 @@ var migrations = []migration{
 			CREATE TABLE SubnetPool (
 				ID TEXT PRIMARY KEY,
 				CIDR TEXT NOT NULL,
-				Used BOOLEAN NOT NULL,
+				AccountID TEXT NOT NULL,
+				VPCID TEXT NOT NULL,
 				ParentSubnet TEXT NOT NULL,
-				SubnetMetadataRaw BYTEA NULL,
 				CreateAt BIGINT NOT NULL,
 				LockAcquiredBy CHAR(26) NULL,
 				LockAcquiredAt BIGINT NOT NULL

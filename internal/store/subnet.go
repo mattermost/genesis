@@ -6,7 +6,6 @@ package store
 
 import (
 	"database/sql"
-	"encoding/json"
 
 	sq "github.com/Masterminds/squirrel"
 	"github.com/mattermost/genesis/model"
@@ -17,32 +16,15 @@ var subnetSelect sq.SelectBuilder
 
 func init() {
 	subnetSelect = sq.
-		Select("SubnetPool.ID", "CIDR", "Used", "ParentSubnet", "SubnetMetadataRaw",
+		Select("SubnetPool.ID", "CIDR", "AccountID", "VPCID", "ParentSubnet",
 			"LockAcquiredBy", "LockAcquiredAt").
 		From("SubnetPool")
 }
 
-// RawSubnetMetadata is the raw byte metadata for a subnet.
-type RawSubnetMetadata struct {
-	SubnetMetadataRaw []byte
-}
-
 type rawSubnet struct {
 	*model.Subnet
-	*RawSubnetMetadata
 }
 type rawSubnets []*rawSubnet
-
-func buildSubnetRawMetadata(subnet *model.Subnet) (*RawSubnetMetadata, error) {
-	subnetMetadataJSON, err := json.Marshal(subnet.SubnetMetadata)
-	if err != nil {
-		return nil, errors.Wrap(err, "unable to marshal SubnetMetadata")
-	}
-
-	return &RawSubnetMetadata{
-		SubnetMetadataRaw: subnetMetadataJSON,
-	}, nil
-}
 
 func (r *rawSubnet) toSubnet() (*model.Subnet, error) {
 	return r.Subnet, nil
@@ -87,7 +69,7 @@ func (sqlStore *SQLStore) GetSubnets(filter *model.SubnetFilter) ([]*model.Subne
 	}
 
 	if filter.Free {
-		builder = builder.Where("Used = false")
+		builder = builder.Where("AccountID = NULL")
 	}
 
 	return rawSubnets.toSubnets()
@@ -109,22 +91,17 @@ func (sqlStore *SQLStore) addSubnets(execer execer, subnets *[]model.Subnet) err
 		subnet.CreateAt = GetMillis()
 		subnet.ID = model.NewID()
 
-		rawMetadata, err := buildSubnetRawMetadata(&subnet)
-		if err != nil {
-			return errors.Wrap(err, "unable to build raw cluster metadata")
-		}
-
-		_, err = sqlStore.execBuilder(execer, sq.
+		_, err := sqlStore.execBuilder(execer, sq.
 			Insert("SubnetPool").
 			SetMap(map[string]interface{}{
-				"ID":                subnet.ID,
-				"CIDR":              subnet.CIDR,
-				"Used":              subnet.Used,
-				"ParentSubnet":      subnet.ParentSubnet,
-				"SubnetMetadataRaw": rawMetadata.SubnetMetadataRaw,
-				"CreateAt":          subnet.CreateAt,
-				"LockAcquiredBy":    nil,
-				"LockAcquiredAt":    0,
+				"ID":             subnet.ID,
+				"CIDR":           subnet.CIDR,
+				"AccountID":      subnet.AccountID,
+				"VPCID":          subnet.VPCID,
+				"ParentSubnet":   subnet.ParentSubnet,
+				"CreateAt":       subnet.CreateAt,
+				"LockAcquiredBy": nil,
+				"LockAcquiredAt": 0,
 			}),
 		)
 		if err != nil {
@@ -137,16 +114,11 @@ func (sqlStore *SQLStore) addSubnets(execer execer, subnets *[]model.Subnet) err
 
 // UpdateSubnet updates the given subnet in the database.
 func (sqlStore *SQLStore) UpdateSubnet(subnet *model.Subnet) error {
-	rawMetadata, err := buildSubnetRawMetadata(subnet)
-	if err != nil {
-		return errors.Wrap(err, "unable to build raw cluster metadata")
-	}
-
-	_, err = sqlStore.execBuilder(sqlStore.db, sq.
+	_, err := sqlStore.execBuilder(sqlStore.db, sq.
 		Update("SubnetPool").
 		SetMap(map[string]interface{}{
-			"Used":              subnet.Used,
-			"SubnetMetadataRaw": rawMetadata.SubnetMetadataRaw,
+			"AccountID": subnet.AccountID,
+			"VPCID":     subnet.VPCID,
 		}).
 		Where("ID = ?", subnet.ID),
 	)

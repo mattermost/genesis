@@ -5,7 +5,6 @@ package main
 
 import (
 	"os"
-	"strconv"
 
 	"github.com/mattermost/genesis/model"
 	"github.com/olekukonko/tablewriter"
@@ -59,24 +58,15 @@ var subnetListCmd = &cobra.Command{
 		if outputToTable {
 			table := tablewriter.NewWriter(os.Stdout)
 			table.SetAlignment(tablewriter.ALIGN_LEFT)
-			table.SetHeader([]string{"SUBNET", "CIDR", "USED", "PARENT SUBNET", "Account ID", "VPC ID", "VPC Peering"})
+			table.SetHeader([]string{"SUBNET", "CIDR", "ACCOUNT ID", "VPC ID", "PARENT SUBNET"})
 
 			for _, subnet := range subnets {
-				if subnet.SubnetMetadata == nil {
-					subnet.SubnetMetadata = &model.SubnetMetadata{
-						AccountID:  "",
-						VPCID:      "",
-						VPCPeering: false,
-					}
-				}
 				table.Append([]string{
 					subnet.ID,
 					subnet.CIDR,
-					strconv.FormatBool(subnet.Used),
+					subnet.AccountID,
+					subnet.VPCID,
 					subnet.ParentSubnet,
-					subnet.SubnetMetadata.AccountID,
-					subnet.SubnetMetadata.VPCID,
-					strconv.FormatBool(subnet.SubnetMetadata.VPCPeering),
 				})
 			}
 			table.Render()
