@@ -5,6 +5,8 @@
 package main
 
 import (
+	"net/url"
+
 	"github.com/mattermost/genesis/model"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -38,6 +40,10 @@ var securityAccountLockAPICmd = &cobra.Command{
 		command.SilenceUsage = true
 
 		serverAddress, _ := command.Flags().GetString("server")
+		if _, err := url.Parse(serverAddress); err != nil {
+			return errors.Wrap(err, "provided server address not a valid address")
+		}
+
 		client := model.NewClient(serverAddress)
 
 		accountID, _ := command.Flags().GetString("account")
@@ -57,6 +63,10 @@ var securityAccountUnlockAPICmd = &cobra.Command{
 		command.SilenceUsage = true
 
 		serverAddress, _ := command.Flags().GetString("server")
+		if _, err := url.Parse(serverAddress); err != nil {
+			return errors.Wrap(err, "provided server address not a valid address")
+		}
+
 		client := model.NewClient(serverAddress)
 
 		accountID, _ := command.Flags().GetString("account")

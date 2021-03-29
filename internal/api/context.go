@@ -31,8 +31,8 @@ type Store interface {
 	GetWebhooks(filter *model.WebhookFilter) ([]*model.Webhook, error)
 	DeleteWebhook(webhookID string) error
 
-	GetParentSubnet(id string) (*model.ParentSubnet, error)
-	GetParentSubnets(filter *model.ParentSubnetFilter) ([]*model.ParentSubnet, error)
+	GetParentSubnet(id string) (model.ParentSubnet, error)
+	GetParentSubnets(filter *model.ParentSubnetFilter) ([]model.ParentSubnet, error)
 	AddParentSubnet(parentSubnet *model.ParentSubnet, subnets *[]model.Subnet) error
 	LockParentSubnet(subnet, lockerID string) (bool, error)
 	UnlockParentSubnet(subnet, lockerID string, force bool) (bool, error)

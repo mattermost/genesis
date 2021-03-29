@@ -19,8 +19,9 @@ func TestParentSubnets(t *testing.T) {
 		defer CloseConnection(t, sqlStore)
 
 		parentSubnet, err := sqlStore.GetParentSubnet("unknown")
+		parentSubnet1 := model.ParentSubnet{}
 		require.NoError(t, err)
-		require.Nil(t, parentSubnet)
+		require.Equal(t, parentSubnet, parentSubnet1)
 	})
 
 	t.Run("get parent subnets", func(t *testing.T) {
@@ -28,7 +29,7 @@ func TestParentSubnets(t *testing.T) {
 		sqlStore := MakeTestSQLStore(t, logger)
 		defer CloseConnection(t, sqlStore)
 
-		parentSubnet1 := &model.ParentSubnet{
+		parentSubnet1 := model.ParentSubnet{
 			CIDR:       "10.0.0.0/8",
 			SplitRange: 8,
 		}
@@ -38,7 +39,7 @@ func TestParentSubnets(t *testing.T) {
 			ParentSubnetID: "10.0.0.0/8",
 		}
 
-		err := sqlStore.AddParentSubnet(parentSubnet1, &[]model.Subnet{*subnet1})
+		err := sqlStore.AddParentSubnet(&parentSubnet1, &[]model.Subnet{*subnet1})
 		require.NoError(t, err)
 
 		actualParentSubnet1, err := sqlStore.GetParentSubnet(parentSubnet1.ID)
@@ -51,15 +52,15 @@ func TestParentSubnets(t *testing.T) {
 
 		actualParentSubnets, err = sqlStore.GetParentSubnets(&model.ParentSubnetFilter{Page: 0, PerPage: 1})
 		require.NoError(t, err)
-		require.Equal(t, []*model.ParentSubnet{parentSubnet1}, actualParentSubnets)
+		require.Equal(t, []model.ParentSubnet{parentSubnet1}, actualParentSubnets)
 
 		actualParentSubnets, err = sqlStore.GetParentSubnets(&model.ParentSubnetFilter{Page: 0, PerPage: 10})
 		require.NoError(t, err)
-		require.Equal(t, []*model.ParentSubnet{parentSubnet1}, actualParentSubnets)
+		require.Equal(t, []model.ParentSubnet{parentSubnet1}, actualParentSubnets)
 
 		actualParentSubnets, err = sqlStore.GetParentSubnets(&model.ParentSubnetFilter{PerPage: model.AllPerPage})
 		require.NoError(t, err)
-		require.Equal(t, []*model.ParentSubnet{parentSubnet1}, actualParentSubnets)
+		require.Equal(t, []model.ParentSubnet{parentSubnet1}, actualParentSubnets)
 	})
 
 	t.Run("update parent subnets", func(t *testing.T) {
@@ -67,7 +68,7 @@ func TestParentSubnets(t *testing.T) {
 		sqlStore := MakeTestSQLStore(t, logger)
 		defer CloseConnection(t, sqlStore)
 
-		parentSubnet1 := &model.ParentSubnet{
+		parentSubnet1 := model.ParentSubnet{
 			CIDR:       "10.0.0.0/8",
 			SplitRange: 8,
 		}
@@ -77,7 +78,7 @@ func TestParentSubnets(t *testing.T) {
 			ParentSubnetID: "10.0.0.0/8",
 		}
 
-		err := sqlStore.AddParentSubnet(parentSubnet1, &[]model.Subnet{*subnet1})
+		err := sqlStore.AddParentSubnet(&parentSubnet1, &[]model.Subnet{*subnet1})
 		require.NoError(t, err)
 
 		actualParentSubnet1, err := sqlStore.GetParentSubnet(parentSubnet1.ID)
@@ -93,19 +94,19 @@ func TestLockParentSubnet(t *testing.T) {
 	lockerID1 := model.NewID()
 	lockerID2 := model.NewID()
 
-	parentSubnet1 := &model.ParentSubnet{
+	parentSubnet1 := model.ParentSubnet{
 		ID: model.NewID(),
 	}
 	subnet1 := &model.Subnet{}
 
-	err := sqlStore.AddParentSubnet(parentSubnet1, &[]model.Subnet{*subnet1})
+	err := sqlStore.AddParentSubnet(&parentSubnet1, &[]model.Subnet{*subnet1})
 	require.NoError(t, err)
 
-	parentSubnet2 := &model.ParentSubnet{
+	parentSubnet2 := model.ParentSubnet{
 		ID: model.NewID(),
 	}
 	subnet2 := &model.Subnet{}
-	err = sqlStore.AddParentSubnet(parentSubnet2, &[]model.Subnet{*subnet2})
+	err = sqlStore.AddParentSubnet(&parentSubnet2, &[]model.Subnet{*subnet2})
 	require.NoError(t, err)
 
 	t.Run("parent subnets should start unlocked", func(t *testing.T) {

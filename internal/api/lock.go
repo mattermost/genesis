@@ -48,23 +48,23 @@ func lockAccount(c *Context, accountID string) (*model.Account, int, func()) {
 
 // lockParentSubnet synchronizes access to the given parent subnet across potentially
 // multiple genesis servers.
-func lockParentSubnet(c *Context, parentSubnet string) (*model.ParentSubnet, int, func()) {
+func lockParentSubnet(c *Context, parentSubnet string) (model.ParentSubnet, int, func()) {
 	parentSub, err := c.Store.GetParentSubnet(parentSubnet)
 	if err != nil {
 		c.Logger.WithError(err).Error("failed to query parent subnet")
-		return nil, http.StatusInternalServerError, nil
+		return model.ParentSubnet{}, http.StatusInternalServerError, nil
 	}
-	if parentSub == nil {
-		return nil, http.StatusNotFound, nil
+	if &parentSub == nil {
+		return model.ParentSubnet{}, http.StatusNotFound, nil
 	}
 
 	locked, err := c.Store.LockParentSubnet(parentSubnet, c.RequestID)
 	if err != nil {
 		c.Logger.WithError(err).Error("failed to lock parent subnet")
-		return nil, http.StatusInternalServerError, nil
+		return model.ParentSubnet{}, http.StatusInternalServerError, nil
 	} else if !locked {
 		c.Logger.Error("failed to acquire lock for parent subnet")
-		return nil, http.StatusConflict, nil
+		return model.ParentSubnet{}, http.StatusConflict, nil
 	}
 
 	unlockOnce := sync.Once{}

@@ -339,11 +339,8 @@ func (c *Client) AddParentSubnet(request *AddParentSubnetRequest) (*ParentSubnet
 	defer closeBody(resp)
 
 	switch resp.StatusCode {
-	case http.StatusAccepted:
+	case http.StatusAccepted, http.StatusCreated:
 		return ParentSubnetFromReader(resp.Body)
-	case http.StatusCreated:
-		return ParentSubnetFromReader(resp.Body)
-
 	default:
 		return nil, errors.Errorf("failed with status code %d", resp.StatusCode)
 	}

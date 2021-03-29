@@ -40,7 +40,7 @@ func handleGetParentSubnet(c *Context, w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	if parentSubnet == nil {
+	if &parentSubnet == nil {
 		w.WriteHeader(http.StatusNotFound)
 		return
 	}
@@ -71,7 +71,7 @@ func handleGetParentSubnets(c *Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 	if parentSubnets == nil {
-		parentSubnets = []*model.ParentSubnet{}
+		parentSubnets = []model.ParentSubnet{}
 	}
 
 	w.Header().Set("Content-Type", "application/json")

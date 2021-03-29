@@ -26,12 +26,12 @@ type rawParentSubnet struct {
 }
 type rawParentSubnets []*rawParentSubnet
 
-func (r *rawParentSubnet) toParentSubnet() (*model.ParentSubnet, error) {
-	return r.ParentSubnet, nil
+func (r *rawParentSubnet) toParentSubnet() (model.ParentSubnet, error) {
+	return *r.ParentSubnet, nil
 }
 
-func (rc *rawParentSubnets) toParentSubnets() ([]*model.ParentSubnet, error) {
-	var parentSubnets []*model.ParentSubnet
+func (rc *rawParentSubnets) toParentSubnets() ([]model.ParentSubnet, error) {
+	var parentSubnets []model.ParentSubnet
 	for _, rawParentSubnet := range *rc {
 		parentSubnet, err := rawParentSubnet.toParentSubnet()
 		if err != nil {
@@ -44,20 +44,20 @@ func (rc *rawParentSubnets) toParentSubnets() ([]*model.ParentSubnet, error) {
 }
 
 // GetParentSubnet fetches the given parent subnet by subnet range.
-func (sqlStore *SQLStore) GetParentSubnet(id string) (*model.ParentSubnet, error) {
+func (sqlStore *SQLStore) GetParentSubnet(id string) (model.ParentSubnet, error) {
 	var rawParentSubnet rawParentSubnet
 	err := sqlStore.getBuilder(sqlStore.db, &rawParentSubnet, parentSubnetSelect.Where("ID = ?", id))
 	if err == sql.ErrNoRows {
-		return nil, nil
+		return model.ParentSubnet{}, nil
 	} else if err != nil {
-		return nil, errors.Wrap(err, "failed to get parent subnet by range")
+		return model.ParentSubnet{}, errors.Wrap(err, "failed to get parent subnet by range")
 	}
 
 	return rawParentSubnet.toParentSubnet()
 }
 
 // GetParentSubnets fetches the given page of added parent subnets. The first page is 0.
-func (sqlStore *SQLStore) GetParentSubnets(filter *model.ParentSubnetFilter) ([]*model.ParentSubnet, error) {
+func (sqlStore *SQLStore) GetParentSubnets(filter *model.ParentSubnetFilter) ([]model.ParentSubnet, error) {
 	builder := parentSubnetSelect.
 		OrderBy("CreateAt ASC")
 	builder = sqlStore.applyParentSubnetsFilter(builder, filter)

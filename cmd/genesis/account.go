@@ -5,6 +5,7 @@ package main
 
 import (
 	"encoding/json"
+	"net/url"
 	"os"
 
 	"github.com/olekukonko/tablewriter"
@@ -63,6 +64,10 @@ var accountCreateCmd = &cobra.Command{
 		command.SilenceUsage = true
 
 		serverAddress, _ := command.Flags().GetString("server")
+		if _, err := url.Parse(serverAddress); err != nil {
+			return errors.Wrap(err, "provided server address not a valid address")
+		}
+
 		client := model.NewClient(serverAddress)
 
 		provider, _ := command.Flags().GetString("provider")
@@ -105,6 +110,10 @@ var accountProvisionCmd = &cobra.Command{
 		command.SilenceUsage = true
 
 		serverAddress, _ := command.Flags().GetString("server")
+		if _, err := url.Parse(serverAddress); err != nil {
+			return errors.Wrap(err, "provided server address not a valid address")
+		}
+
 		client := model.NewClient(serverAddress)
 		accountID, _ := command.Flags().GetString("account")
 
@@ -140,6 +149,10 @@ var accountDeleteCmd = &cobra.Command{
 		command.SilenceUsage = true
 
 		serverAddress, _ := command.Flags().GetString("server")
+		if _, err := url.Parse(serverAddress); err != nil {
+			return errors.Wrap(err, "provided server address not a valid address")
+		}
+
 		client := model.NewClient(serverAddress)
 
 		accountID, _ := command.Flags().GetString("account")
@@ -160,6 +173,10 @@ var accountGetCmd = &cobra.Command{
 		command.SilenceUsage = true
 
 		serverAddress, _ := command.Flags().GetString("server")
+		if _, err := url.Parse(serverAddress); err != nil {
+			return errors.Wrap(err, "provided server address not a valid address")
+		}
+
 		client := model.NewClient(serverAddress)
 
 		accountID, _ := command.Flags().GetString("account")
@@ -186,6 +203,10 @@ var accountListCmd = &cobra.Command{
 		command.SilenceUsage = true
 
 		serverAddress, _ := command.Flags().GetString("server")
+		if _, err := url.Parse(serverAddress); err != nil {
+			return errors.Wrap(err, "provided server address not a valid address")
+		}
+
 		client := model.NewClient(serverAddress)
 
 		page, _ := command.Flags().GetInt("page")

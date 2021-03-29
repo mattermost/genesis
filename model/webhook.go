@@ -14,7 +14,7 @@ const (
 	TypeAccount = "account"
 
 	// TypeParentSubnet is the string value that represents a parent subnet
-	TypeParentSubnet = "parent subnet"
+	TypeParentSubnet = "parent_subnet"
 )
 
 // Webhook represents a genesis webhook

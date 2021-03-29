@@ -5,6 +5,7 @@
 package main
 
 import (
+	"net/url"
 	"os"
 
 	"github.com/mattermost/genesis/model"
@@ -51,6 +52,10 @@ var webhookCreateCmd = &cobra.Command{
 		command.SilenceUsage = true
 
 		serverAddress, _ := command.Flags().GetString("server")
+		if _, err := url.Parse(serverAddress); err != nil {
+			return errors.Wrap(err, "provided server address not a valid address")
+		}
+
 		client := model.NewClient(serverAddress)
 
 		ownerID, _ := command.Flags().GetString("owner")
@@ -79,6 +84,10 @@ var webhookGetCmd = &cobra.Command{
 		command.SilenceUsage = true
 
 		serverAddress, _ := command.Flags().GetString("server")
+		if _, err := url.Parse(serverAddress); err != nil {
+			return errors.Wrap(err, "provided server address not a valid address")
+		}
+
 		client := model.NewClient(serverAddress)
 
 		webhookID, _ := command.Flags().GetString("webhook")
@@ -105,6 +114,10 @@ var webhookListCmd = &cobra.Command{
 		command.SilenceUsage = true
 
 		serverAddress, _ := command.Flags().GetString("server")
+		if _, err := url.Parse(serverAddress); err != nil {
+			return errors.Wrap(err, "provided server address not a valid address")
+		}
+
 		client := model.NewClient(serverAddress)
 
 		owner, _ := command.Flags().GetString("owner")
@@ -150,6 +163,10 @@ var webhookDeleteCmd = &cobra.Command{
 		command.SilenceUsage = true
 
 		serverAddress, _ := command.Flags().GetString("server")
+		if _, err := url.Parse(serverAddress); err != nil {
+			return errors.Wrap(err, "provided server address not a valid address")
+		}
+
 		client := model.NewClient(serverAddress)
 
 		webhookID, _ := command.Flags().GetString("webhook")

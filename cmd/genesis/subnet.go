@@ -4,6 +4,7 @@
 package main
 
 import (
+	"net/url"
 	"os"
 
 	"github.com/mattermost/genesis/model"
@@ -40,6 +41,10 @@ var subnetListCmd = &cobra.Command{
 		command.SilenceUsage = true
 
 		serverAddress, _ := command.Flags().GetString("server")
+		if _, err := url.Parse(serverAddress); err != nil {
+			return errors.Wrap(err, "provided server address not a valid address")
+		}
+
 		client := model.NewClient(serverAddress)
 
 		page, _ := command.Flags().GetInt("page")
@@ -89,6 +94,10 @@ var subnetGetCmd = &cobra.Command{
 		command.SilenceUsage = true
 
 		serverAddress, _ := command.Flags().GetString("server")
+		if _, err := url.Parse(serverAddress); err != nil {
+			return errors.Wrap(err, "provided server address not a valid address")
+		}
+
 		client := model.NewClient(serverAddress)
 
 		subnet, _ := command.Flags().GetString("subnet")
