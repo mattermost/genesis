@@ -149,13 +149,11 @@ func (sqlStore *SQLStore) CreateAccount(account *model.Account) error {
 	}
 	defer tx.RollbackUnlessCommitted()
 
-	err = sqlStore.createAccount(tx, account)
-	if err != nil {
+	if err = sqlStore.createAccount(tx, account); err != nil {
 		return errors.Wrap(err, "failed to create account")
 	}
 
-	err = tx.Commit()
-	if err != nil {
+	if err = tx.Commit(); err != nil {
 		return errors.Wrap(err, "failed to commit the transaction")
 	}
 
@@ -172,7 +170,7 @@ func (sqlStore *SQLStore) createAccount(execer execer, account *model.Account) e
 		return errors.Wrap(err, "unable to build raw account metadata")
 	}
 
-	_, err = sqlStore.execBuilder(execer, sq.
+	if _, err = sqlStore.execBuilder(execer, sq.
 		Insert("Account").
 		SetMap(map[string]interface{}{
 			"ID":                  account.ID,
@@ -187,8 +185,7 @@ func (sqlStore *SQLStore) createAccount(execer execer, account *model.Account) e
 			"LockAcquiredBy":      nil,
 			"LockAcquiredAt":      0,
 		}),
-	)
-	if err != nil {
+	); err != nil {
 		return errors.Wrap(err, "failed to create account")
 	}
 
@@ -202,7 +199,7 @@ func (sqlStore *SQLStore) UpdateAccount(account *model.Account) error {
 		return errors.Wrap(err, "unable to build raw account metadata")
 	}
 
-	_, err = sqlStore.execBuilder(sqlStore.db, sq.
+	if _, err = sqlStore.execBuilder(sqlStore.db, sq.
 		Update("Account").
 		SetMap(map[string]interface{}{
 			"State":               account.State,
@@ -212,8 +209,7 @@ func (sqlStore *SQLStore) UpdateAccount(account *model.Account) error {
 			"AccountMetadataRaw":  rawMetadata.AccountMetadataRaw,
 		}).
 		Where("ID = ?", account.ID),
-	)
-	if err != nil {
+	); err != nil {
 		return errors.Wrap(err, "failed to update account")
 	}
 

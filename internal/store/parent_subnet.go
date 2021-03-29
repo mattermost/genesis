@@ -89,18 +89,15 @@ func (sqlStore *SQLStore) AddParentSubnet(parentSubnet *model.ParentSubnet, subn
 	}
 	defer tx.RollbackUnlessCommitted()
 
-	err = sqlStore.addParentSubnet(tx, parentSubnet)
-	if err != nil {
+	if err = sqlStore.addParentSubnet(tx, parentSubnet); err != nil {
 		return errors.Wrap(err, "failed to add parent subnet")
 	}
 
-	err = sqlStore.addSubnets(tx, subnets)
-	if err != nil {
+	if err = sqlStore.addSubnets(tx, subnets); err != nil {
 		return errors.Wrap(err, "failed to add subnets")
 	}
 
-	err = tx.Commit()
-	if err != nil {
+	if err = tx.Commit(); err != nil {
 		return errors.Wrap(err, "failed to commit the transaction")
 	}
 
@@ -111,7 +108,7 @@ func (sqlStore *SQLStore) AddParentSubnet(parentSubnet *model.ParentSubnet, subn
 func (sqlStore *SQLStore) addParentSubnet(execer execer, parentSubnet *model.ParentSubnet) error {
 	parentSubnet.CreateAt = GetMillis()
 
-	_, err := sqlStore.execBuilder(execer, sq.
+	if _, err := sqlStore.execBuilder(execer, sq.
 		Insert("ParentSubnet").
 		SetMap(map[string]interface{}{
 			"ID":             parentSubnet.ID,
@@ -121,8 +118,7 @@ func (sqlStore *SQLStore) addParentSubnet(execer execer, parentSubnet *model.Par
 			"LockAcquiredBy": nil,
 			"LockAcquiredAt": 0,
 		}),
-	)
-	if err != nil {
+	); err != nil {
 		return errors.Wrap(err, "failed to create parent subnet")
 	}
 

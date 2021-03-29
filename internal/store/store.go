@@ -123,8 +123,7 @@ func (sqlStore *SQLStore) getBuilder(q sqlx.Queryer, dest interface{}, b builder
 
 	sql = sqlStore.db.Rebind(sql)
 
-	err = sqlx.Get(q, dest, sql, args...)
-	if err != nil {
+	if err = sqlx.Get(q, dest, sql, args...); err != nil {
 		return err
 	}
 
@@ -143,8 +142,7 @@ func (sqlStore *SQLStore) selectBuilder(q sqlx.Queryer, dest interface{}, b buil
 
 	sql = sqlStore.db.Rebind(sql)
 
-	err = sqlx.Select(q, dest, sql, args...)
-	if err != nil {
+	if err = sqlx.Select(q, dest, sql, args...); err != nil {
 		return err
 	}
 

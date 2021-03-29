@@ -55,8 +55,7 @@ var parentSubnetAddCmd = &cobra.Command{
 
 		dryRun, _ := command.Flags().GetBool("dry-run")
 		if dryRun {
-			err := printJSON(request)
-			if err != nil {
+			if err := printJSON(request); err != nil {
 				return errors.Wrap(err, "failed to print API request")
 			}
 
@@ -68,8 +67,7 @@ var parentSubnetAddCmd = &cobra.Command{
 			return errors.Wrap(err, "failed to add parent subnet")
 		}
 
-		err = printJSON(subnet)
-		if err != nil {
+		if err = printJSON(subnet); err != nil {
 			return errors.Wrap(err, "failed to print parent subnet response")
 		}
 
@@ -113,8 +111,7 @@ var parentSubnetListCmd = &cobra.Command{
 			return nil
 		}
 
-		err = printJSON(parentSubnets)
-		if err != nil {
+		if err = printJSON(parentSubnets); err != nil {
 			return errors.Wrap(err, "failed to print parent subnet response")
 		}
 
@@ -140,8 +137,7 @@ var parentSubnetGetCmd = &cobra.Command{
 			return nil
 		}
 
-		err = printJSON(parentSubnet)
-		if err != nil {
+		if err = printJSON(parentSubnet); err != nil {
 			return errors.Wrap(err, "failed to print parent subnet response")
 		}
 

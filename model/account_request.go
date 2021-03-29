@@ -51,8 +51,7 @@ func NewCreateAccountRequestFromReader(reader io.Reader) (*CreateAccountRequest,
 	}
 
 	createAccountRequest.SetDefaults()
-	err = createAccountRequest.Validate()
-	if err != nil {
+	if err = createAccountRequest.Validate(); err != nil {
 		return nil, errors.Wrap(err, "create account request failed validation")
 	}
 

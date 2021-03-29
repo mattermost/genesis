@@ -64,8 +64,7 @@ var webhookCreateCmd = &cobra.Command{
 			return errors.Wrap(err, "failed to create webhook")
 		}
 
-		err = printJSON(webhook)
-		if err != nil {
+		if err = printJSON(webhook); err != nil {
 			return err
 		}
 
@@ -91,8 +90,7 @@ var webhookGetCmd = &cobra.Command{
 			return nil
 		}
 
-		err = printJSON(webhook)
-		if err != nil {
+		if err = printJSON(webhook); err != nil {
 			return err
 		}
 
@@ -137,8 +135,7 @@ var webhookListCmd = &cobra.Command{
 			return nil
 		}
 
-		err = printJSON(webhooks)
-		if err != nil {
+		if err = printJSON(webhooks); err != nil {
 			return err
 		}
 

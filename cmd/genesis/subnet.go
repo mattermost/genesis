@@ -74,8 +74,7 @@ var subnetListCmd = &cobra.Command{
 			return nil
 		}
 
-		err = printJSON(subnets)
-		if err != nil {
+		if err = printJSON(subnets); err != nil {
 			return errors.Wrap(err, "failed to print subnet response")
 		}
 
@@ -101,8 +100,7 @@ var subnetGetCmd = &cobra.Command{
 			return nil
 		}
 
-		err = printJSON(sub)
-		if err != nil {
+		if err = printJSON(sub); err != nil {
 			return errors.Wrap(err, "failed to print subnet response")
 		}
 

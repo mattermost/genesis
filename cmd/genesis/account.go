@@ -90,8 +90,7 @@ var accountCreateCmd = &cobra.Command{
 			return errors.Wrap(err, "failed to create account")
 		}
 
-		err = printJSON(account)
-		if err != nil {
+		if err = printJSON(account); err != nil {
 			return errors.Wrap(err, "failed to print account response")
 		}
 
@@ -126,8 +125,7 @@ var accountProvisionCmd = &cobra.Command{
 			return errors.Wrap(err, "failed to provision account")
 		}
 
-		err = printJSON(account)
-		if err != nil {
+		if err = printJSON(account); err != nil {
 			return errors.Wrap(err, "failed to print account response")
 		}
 
@@ -173,8 +171,7 @@ var accountGetCmd = &cobra.Command{
 			return nil
 		}
 
-		err = printJSON(account)
-		if err != nil {
+		if err = printJSON(account); err != nil {
 			return errors.Wrap(err, "failed to print account response")
 		}
 
@@ -221,8 +218,7 @@ var accountListCmd = &cobra.Command{
 			return nil
 		}
 
-		err = printJSON(accounts)
-		if err != nil {
+		if err = printJSON(accounts); err != nil {
 			return errors.Wrap(err, "failed to print account response")
 		}
 

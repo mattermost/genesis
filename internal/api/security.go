@@ -42,8 +42,7 @@ func handleAccountLockAPI(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if !account.APISecurityLock {
-		err = c.Store.LockAccountAPI(account.ID)
-		if err != nil {
+		if err := c.Store.LockAccountAPI(account.ID); err != nil {
 			c.Logger.WithError(err).Error("failed to lock account API")
 			w.WriteHeader(http.StatusInternalServerError)
 			return
@@ -72,8 +71,7 @@ func handleAccountUnlockAPI(c *Context, w http.ResponseWriter, r *http.Request) 
 	}
 
 	if account.APISecurityLock {
-		err = c.Store.UnlockAccountAPI(account.ID)
-		if err != nil {
+		if err = c.Store.UnlockAccountAPI(account.ID); err != nil {
 			c.Logger.WithError(err).Error("failed to unlock account API")
 			w.WriteHeader(http.StatusInternalServerError)
 			return

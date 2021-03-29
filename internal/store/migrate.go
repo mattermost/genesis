@@ -46,20 +46,17 @@ func (sqlStore *SQLStore) Migrate() error {
 			}
 			defer tx.Rollback()
 
-			err = migration.migrationFunc(tx)
-			if err != nil {
+			if err = migration.migrationFunc(tx); err != nil {
 				return errors.Wrapf(err, "failed to migrate to target version %s", migration.toVersion)
 			}
 
 			currentVersion = migration.toVersion
-			err = sqlStore.setCurrentVersion(tx, currentVersion.String())
-			if err != nil {
+			if err = sqlStore.setCurrentVersion(tx, currentVersion.String()); err != nil {
 				return errors.Wrap(err, "failed to record target version")
 			}
 
 			applied++
-			err = tx.Commit()
-			if err != nil {
+			if err = tx.Commit(); err != nil {
 				return errors.Wrapf(err, "failed to commit target version %s", migration.toVersion)
 			}
 

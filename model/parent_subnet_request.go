@@ -42,8 +42,7 @@ func NewAddParentSubnetRequestFromReader(reader io.Reader) (*AddParentSubnetRequ
 	}
 
 	addParentSubnetRequest.SetDefaults()
-	err = addParentSubnetRequest.Validate()
-	if err != nil {
+	if err = addParentSubnetRequest.Validate(); err != nil {
 		return nil, errors.Wrap(err, "add parent subnet request failed validation")
 	}
 

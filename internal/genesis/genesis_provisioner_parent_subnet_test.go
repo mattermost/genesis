@@ -21,14 +21,14 @@ func TestSplitParentSubnet(t *testing.T) {
 
 		actualSubnets := []model.Subnet{
 			{
-				CIDR:         "10.0.0.0/9",
-				ParentSubnet: "10.0.0.0/8",
-				CreateAt:     10,
+				CIDR:           "10.0.0.0/9",
+				ParentSubnetID: "10.0.0.0/8",
+				CreateAt:       10,
 			},
 			{
-				CIDR:         "10.128.0.0/9",
-				ParentSubnet: "10.0.0.0/8",
-				CreateAt:     10,
+				CIDR:           "10.128.0.0/9",
+				ParentSubnetID: "10.0.0.0/8",
+				CreateAt:       10,
 			},
 		}
 		require.Equal(t, subnets, actualSubnets)
@@ -44,24 +44,24 @@ func TestSplitParentSubnet(t *testing.T) {
 
 		actualSubnets := []model.Subnet{
 			{
-				CIDR:         "10.0.0.0/10",
-				ParentSubnet: "10.0.0.0/8",
-				CreateAt:     10,
+				CIDR:           "10.0.0.0/10",
+				ParentSubnetID: "10.0.0.0/8",
+				CreateAt:       10,
 			},
 			{
-				CIDR:         "10.64.0.0/10",
-				ParentSubnet: "10.0.0.0/8",
-				CreateAt:     10,
+				CIDR:           "10.64.0.0/10",
+				ParentSubnetID: "10.0.0.0/8",
+				CreateAt:       10,
 			},
 			{
-				CIDR:         "10.128.0.0/10",
-				ParentSubnet: "10.0.0.0/8",
-				CreateAt:     10,
+				CIDR:           "10.128.0.0/10",
+				ParentSubnetID: "10.0.0.0/8",
+				CreateAt:       10,
 			},
 			{
-				CIDR:         "10.192.0.0/10",
-				ParentSubnet: "10.0.0.0/8",
-				CreateAt:     10,
+				CIDR:           "10.192.0.0/10",
+				ParentSubnetID: "10.0.0.0/8",
+				CreateAt:       10,
 			},
 		}
 		require.Equal(t, subnets, actualSubnets)
@@ -77,44 +77,44 @@ func TestSplitParentSubnet(t *testing.T) {
 
 		actualSubnets := []model.Subnet{
 			{
-				CIDR:         "10.0.0.0/23",
-				ParentSubnet: "10.0.0.0/20",
-				CreateAt:     10,
+				CIDR:           "10.0.0.0/23",
+				ParentSubnetID: "10.0.0.0/20",
+				CreateAt:       10,
 			},
 			{
-				CIDR:         "10.0.2.0/23",
-				ParentSubnet: "10.0.0.0/20",
-				CreateAt:     10,
+				CIDR:           "10.0.2.0/23",
+				ParentSubnetID: "10.0.0.0/20",
+				CreateAt:       10,
 			},
 			{
-				CIDR:         "10.0.4.0/23",
-				ParentSubnet: "10.0.0.0/20",
-				CreateAt:     10,
+				CIDR:           "10.0.4.0/23",
+				ParentSubnetID: "10.0.0.0/20",
+				CreateAt:       10,
 			},
 			{
-				CIDR:         "10.0.6.0/23",
-				ParentSubnet: "10.0.0.0/20",
-				CreateAt:     10,
+				CIDR:           "10.0.6.0/23",
+				ParentSubnetID: "10.0.0.0/20",
+				CreateAt:       10,
 			},
 			{
-				CIDR:         "10.0.8.0/23",
-				ParentSubnet: "10.0.0.0/20",
-				CreateAt:     10,
+				CIDR:           "10.0.8.0/23",
+				ParentSubnetID: "10.0.0.0/20",
+				CreateAt:       10,
 			},
 			{
-				CIDR:         "10.0.10.0/23",
-				ParentSubnet: "10.0.0.0/20",
-				CreateAt:     10,
+				CIDR:           "10.0.10.0/23",
+				ParentSubnetID: "10.0.0.0/20",
+				CreateAt:       10,
 			},
 			{
-				CIDR:         "10.0.12.0/23",
-				ParentSubnet: "10.0.0.0/20",
-				CreateAt:     10,
+				CIDR:           "10.0.12.0/23",
+				ParentSubnetID: "10.0.0.0/20",
+				CreateAt:       10,
 			},
 			{
-				CIDR:         "10.0.14.0/23",
-				ParentSubnet: "10.0.0.0/20",
-				CreateAt:     10,
+				CIDR:           "10.0.14.0/23",
+				ParentSubnetID: "10.0.0.0/20",
+				CreateAt:       10,
 			},
 		}
 		require.Equal(t, subnets, actualSubnets)

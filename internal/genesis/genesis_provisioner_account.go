@@ -40,6 +40,9 @@ func (provisioner *GenProvisioner) DeleteAccount(account *model.Account, awsClie
 // ProvisionAccount deletes an account using AWS API and terraform.
 func (provisioner *GenProvisioner) ProvisionAccount(account *model.Account, awsClient aws.AWS) error {
 	logger := provisioner.logger.WithField("account", account.ID)
-	logger.Infof("Provisioning account %s", account.ID)
+	err := provisionAccount(provisioner, account, logger, awsClient)
+	if err != nil {
+		return err
+	}
 	return nil
 }

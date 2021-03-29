@@ -40,8 +40,7 @@ func handleCreateWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
 		URL:     createWebhookRequest.URL,
 	}
 
-	err = c.Store.CreateWebhook(&webhook)
-	if err != nil {
+	if err = c.Store.CreateWebhook(&webhook); err != nil {
 		c.Logger.WithError(err).Error("failed to create webhook")
 		w.WriteHeader(http.StatusInternalServerError)
 		return
@@ -129,8 +128,7 @@ func handleDeleteWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = c.Store.DeleteWebhook(webhookID)
-	if err != nil {
+	if err = c.Store.DeleteWebhook(webhookID); err != nil {
 		c.Logger.WithError(err).Error("failed to mark webhook as deleted")
 		w.WriteHeader(http.StatusInternalServerError)
 		return

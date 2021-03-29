@@ -121,8 +121,7 @@ func (s *AccountSupervisor) Supervise(account *model.Account) {
 
 	oldState := account.State
 	account.State = newState
-	err = s.store.UpdateAccount(account)
-	if err != nil {
+	if err = s.store.UpdateAccount(account); err != nil {
 		logger.WithError(err).Warnf("failed to set account state to %s", newState)
 		return
 	}
@@ -141,8 +140,7 @@ func (s *AccountSupervisor) Supervise(account *model.Account) {
 		Timestamp: time.Now().UnixNano(),
 		ExtraData: map[string]string{"Environment": environment},
 	}
-	err = webhook.SendToAllWebhooks(s.store, webhookPayload, logger.WithField("webhookEvent", webhookPayload.NewState))
-	if err != nil {
+	if err = webhook.SendToAllWebhooks(s.store, webhookPayload, logger.WithField("webhookEvent", webhookPayload.NewState)); err != nil {
 		logger.WithError(err).Error("Unable to process and send webhooks")
 	}
 
@@ -170,15 +168,13 @@ func (s *AccountSupervisor) createAccount(account *model.Account, logger log.Fie
 	var err error
 
 	if s.provisioner.PrepareAccount(account) {
-		err = s.store.UpdateAccount(account)
-		if err != nil {
+		if err = s.store.UpdateAccount(account); err != nil {
 			logger.WithError(err).Error("Failed to record updated account after creation")
 			return model.AccountStateCreationFailed
 		}
 	}
 
-	err = s.provisioner.CreateAccount(account, s.aws)
-	if err != nil {
+	if err = s.provisioner.CreateAccount(account, s.aws); err != nil {
 		logger.WithError(err).Error("Failed to create account")
 		return model.AccountStateCreationFailed
 	}
@@ -218,8 +214,7 @@ func (s *AccountSupervisor) deleteAccount(account *model.Account, logger log.Fie
 		return model.AccountStateDeletionFailed
 	}
 
-	err = s.store.DeleteAccount(account.ID)
-	if err != nil {
+	if err = s.store.DeleteAccount(account.ID); err != nil {
 		logger.WithError(err).Error("Failed to record updated account after deletion")
 		return model.AccountStateDeletionFailed
 	}

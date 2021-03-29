@@ -101,8 +101,7 @@ func handleAddParentSubnet(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = c.Store.AddParentSubnet(&parentSubnet, &subnets)
-	if err != nil {
+	if err := c.Store.AddParentSubnet(&parentSubnet, &subnets); err != nil {
 		c.Logger.WithError(err).Error("failed to add parent subnet")
 		w.WriteHeader(http.StatusInternalServerError)
 		return
@@ -114,8 +113,8 @@ func handleAddParentSubnet(c *Context, w http.ResponseWriter, r *http.Request) {
 		Timestamp: time.Now().UnixNano(),
 		ExtraData: map[string]string{"CIDR": parentSubnet.CIDR},
 	}
-	err = webhook.SendToAllWebhooks(c.Store, webhookPayload, c.Logger.WithField("webhookEvent", nil))
-	if err != nil {
+
+	if err := webhook.SendToAllWebhooks(c.Store, webhookPayload, c.Logger.WithField("webhookEvent", nil)); err != nil {
 		c.Logger.WithError(err).Error("Unable to process and send webhooks")
 	}
 
