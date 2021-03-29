@@ -5,6 +5,7 @@ package main
 
 import (
 	"encoding/json"
+	"net/url"
 	"os"
 
 	"github.com/olekukonko/tablewriter"
@@ -63,6 +64,10 @@ var accountCreateCmd = &cobra.Command{
 		command.SilenceUsage = true
 
 		serverAddress, _ := command.Flags().GetString("server")
+		if _, err := url.Parse(serverAddress); err != nil {
+			return errors.Wrap(err, "provided server address not a valid address")
+		}
+
 		client := model.NewClient(serverAddress)
 
 		provider, _ := command.Flags().GetString("provider")
@@ -90,8 +95,7 @@ var accountCreateCmd = &cobra.Command{
 			return errors.Wrap(err, "failed to create account")
 		}
 
-		err = printJSON(account)
-		if err != nil {
+		if err = printJSON(account); err != nil {
 			return errors.Wrap(err, "failed to print account response")
 		}
 
@@ -106,6 +110,10 @@ var accountProvisionCmd = &cobra.Command{
 		command.SilenceUsage = true
 
 		serverAddress, _ := command.Flags().GetString("server")
+		if _, err := url.Parse(serverAddress); err != nil {
+			return errors.Wrap(err, "provided server address not a valid address")
+		}
+
 		client := model.NewClient(serverAddress)
 		accountID, _ := command.Flags().GetString("account")
 
@@ -126,8 +134,7 @@ var accountProvisionCmd = &cobra.Command{
 			return errors.Wrap(err, "failed to provision account")
 		}
 
-		err = printJSON(account)
-		if err != nil {
+		if err = printJSON(account); err != nil {
 			return errors.Wrap(err, "failed to print account response")
 		}
 
@@ -142,6 +149,10 @@ var accountDeleteCmd = &cobra.Command{
 		command.SilenceUsage = true
 
 		serverAddress, _ := command.Flags().GetString("server")
+		if _, err := url.Parse(serverAddress); err != nil {
+			return errors.Wrap(err, "provided server address not a valid address")
+		}
+
 		client := model.NewClient(serverAddress)
 
 		accountID, _ := command.Flags().GetString("account")
@@ -162,6 +173,10 @@ var accountGetCmd = &cobra.Command{
 		command.SilenceUsage = true
 
 		serverAddress, _ := command.Flags().GetString("server")
+		if _, err := url.Parse(serverAddress); err != nil {
+			return errors.Wrap(err, "provided server address not a valid address")
+		}
+
 		client := model.NewClient(serverAddress)
 
 		accountID, _ := command.Flags().GetString("account")
@@ -173,8 +188,7 @@ var accountGetCmd = &cobra.Command{
 			return nil
 		}
 
-		err = printJSON(account)
-		if err != nil {
+		if err = printJSON(account); err != nil {
 			return errors.Wrap(err, "failed to print account response")
 		}
 
@@ -189,6 +203,10 @@ var accountListCmd = &cobra.Command{
 		command.SilenceUsage = true
 
 		serverAddress, _ := command.Flags().GetString("server")
+		if _, err := url.Parse(serverAddress); err != nil {
+			return errors.Wrap(err, "provided server address not a valid address")
+		}
+
 		client := model.NewClient(serverAddress)
 
 		page, _ := command.Flags().GetInt("page")
@@ -221,8 +239,7 @@ var accountListCmd = &cobra.Command{
 			return nil
 		}
 
-		err = printJSON(accounts)
-		if err != nil {
+		if err = printJSON(accounts); err != nil {
 			return errors.Wrap(err, "failed to print account response")
 		}
 

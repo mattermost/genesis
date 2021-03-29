@@ -12,7 +12,7 @@ import (
 )
 
 // createAccount is used to create new AWS accounts
-func createAccount(provisioner *GenesisProvisioner, account *model.Account, logger *logrus.Entry, awsClient awstools.AWS) error {
+func createAccount(provisioner *GenProvisioner, account *model.Account, logger *logrus.Entry, awsClient awstools.AWS) error {
 	logger.Infof("Creating account %s", account.ID)
 
 	awsCreds, err := awsClient.AssumeRole(fmt.Sprintf("arn:aws:iam::%s:role/%s", provisioner.controlTowerAccountID, provisioner.controlTowerRole))
@@ -27,27 +27,23 @@ func createAccount(provisioner *GenesisProvisioner, account *model.Account, logg
 	}
 	awsClientControlTower := awstools.NewAWSClientWithConfig(awsConfig, logger)
 
-	err = awsClientControlTower.ProvisionServiceCatalogProduct(provisioner.ssoUserEmail, provisioner.ssoFirstName, provisioner.ssoLastName, provisioner.managedOU, account)
-	if err != nil {
+	if err = awsClientControlTower.ProvisionServiceCatalogProduct(provisioner.ssoUserEmail, provisioner.ssoFirstName, provisioner.ssoLastName, provisioner.managedOU, account); err != nil {
 		return errors.Wrap(err, "failed to provision service catalog product")
 	}
 
 	wait := 3600
 	logger.Infof("Waiting up to %d seconds for account to become ready...", wait)
-	err = awsClientControlTower.WaitForAccountReadiness(account, wait)
-	if err != nil {
+	if err = awsClientControlTower.WaitForAccountReadiness(account, wait); err != nil {
 		logger.WithError(err).Error("failed while waiting for new account to get ready")
 		logger.Info("Trying to get AWS Account details")
-		err = awsClientControlTower.GetAccountDetails(account)
-		if err != nil {
+		if err = awsClientControlTower.GetAccountDetails(account); err != nil {
 			return errors.Wrap(err, "failed to get account details")
 		}
 		return err
 	}
 
 	logger.Info("Getting AWS Account physical ID")
-	err = awsClientControlTower.GetAccountDetails(account)
-	if err != nil {
+	if err = awsClientControlTower.GetAccountDetails(account); err != nil {
 		return errors.Wrap(err, "failed to get AWS account details")
 	}
 	logger.Infof("Creating provisioning IAM role in account %s", account.ProviderMetadataAWS.AWSAccountID)
@@ -73,8 +69,7 @@ func createAccount(provisioner *GenesisProvisioner, account *model.Account, logg
 	tempDestinationAWSClient := awstools.NewAWSClientWithConfig(tempAWSConfig, logger)
 
 	logger.Infof("Provisioning IAM role in account %s", account.ProviderMetadataAWS.AWSAccountID)
-	err = tempDestinationAWSClient.CreateProvisioningIAMRole(genesisAccount)
-	if err != nil {
+	if err = tempDestinationAWSClient.CreateProvisioningIAMRole(genesisAccount); err != nil {
 		return errors.Wrap(err, "failed to create provisioning IAM role in new account")
 	}
 
@@ -82,12 +77,14 @@ func createAccount(provisioner *GenesisProvisioner, account *model.Account, logg
 }
 
 // provisionAccount is used to provision AWS accounts
-func provisionAccount(provisioner *GenesisProvisioner, account *model.Account, logger *logrus.Entry, awsClient awstools.AWS) error {
+func provisionAccount(provisioner *GenProvisioner, account *model.Account, logger *logrus.Entry, awsClient awstools.AWS) error {
+	logger.Infof("Provisioning account %s", account.ID)
+
 	return nil
 }
 
 // deleteAccount is used to delete AWS accounts
-func deleteAccount(provisioner *GenesisProvisioner, account *model.Account, logger *logrus.Entry, awsClient awstools.AWS) error {
+func deleteAccount(provisioner *GenProvisioner, account *model.Account, logger *logrus.Entry, awsClient awstools.AWS) error {
 
 	logger.Infof("Deleting account with physical id %s", account.ProviderMetadataAWS.AWSAccountID)
 	awsCreds, err := awsClient.AssumeRole(fmt.Sprintf("arn:aws:iam::%s:role/%s", provisioner.controlTowerAccountID, provisioner.controlTowerRole))
@@ -102,8 +99,7 @@ func deleteAccount(provisioner *GenesisProvisioner, account *model.Account, logg
 	}
 	awsClientControlTower := awstools.NewAWSClientWithConfig(awsConfig, logger)
 
-	err = awsClientControlTower.DeleteServiceCatalogProduct(account.ProviderMetadataAWS.AccountProductID)
-	if err != nil {
+	if err = awsClientControlTower.DeleteServiceCatalogProduct(account.ProviderMetadataAWS.AccountProductID); err != nil {
 		return errors.Wrap(err, "failed to delete account")
 	}
 	return nil

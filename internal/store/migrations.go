@@ -31,7 +31,7 @@ var migrations = []migration{
 			return err
 		}
 
-		_, err = e.Exec(`
+		if _, err = e.Exec(`
 			CREATE TABLE Account (
 				ID CHAR(26) PRIMARY KEY,
 				State TEXT NOT NULL,
@@ -45,13 +45,12 @@ var migrations = []migration{
 				LockAcquiredBy CHAR(26) NULL,
 				LockAcquiredAt BIGINT NOT NULL
 			);
-		`)
-		if err != nil {
+		`); err != nil {
 			return err
 		}
 
 		// Add webhook table.
-		_, err = e.Exec(`
+		if _, err = e.Exec(`
 			CREATE TABLE Webhooks (
 				ID TEXT PRIMARY KEY,
 				OwnerID TEXT NOT NULL,
@@ -59,15 +58,44 @@ var migrations = []migration{
 				CreateAt BIGINT NOT NULL,
 				DeleteAt BIGINT NOT NULL
 			);
-		`)
-		if err != nil {
+		`); err != nil {
 			return err
 		}
 
-		_, err = e.Exec(`
+		if _, err = e.Exec(`
 			CREATE UNIQUE INDEX Webhook_URL_DeleteAt ON Webhooks (URL, DeleteAt);
-		`)
-		if err != nil {
+		`); err != nil {
+			return err
+		}
+
+		return nil
+	}},
+	{semver.MustParse("0.1.0"), semver.MustParse("0.2.0"), func(e execer) error {
+		if _, err := e.Exec(`
+			CREATE TABLE ParentSubnet (
+				ID TEXT PRIMARY KEY,
+				CIDR TEXT NOT NULL,
+				SplitRange INT NOT NULL,
+				CreateAt BIGINT NOT NULL,
+				LockAcquiredBy CHAR(26) NULL,
+				LockAcquiredAt BIGINT NOT NULL
+			);
+		`); err != nil {
+			return err
+		}
+
+		if _, err := e.Exec(`
+			CREATE TABLE SubnetPool (
+				ID TEXT PRIMARY KEY,
+				CIDR TEXT NOT NULL,
+				AccountID TEXT NOT NULL,
+				VPCID TEXT NOT NULL,
+				ParentSubnet TEXT NOT NULL,
+				CreateAt BIGINT NOT NULL,
+				LockAcquiredBy CHAR(26) NULL,
+				LockAcquiredAt BIGINT NOT NULL
+			);
+	    `); err != nil {
 			return err
 		}
 

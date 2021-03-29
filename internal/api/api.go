@@ -15,4 +15,6 @@ func Register(rootRouter *mux.Router, context *Context) {
 	initAccount(apiRouter, context)
 	initWebhook(apiRouter, context)
 	initSecurity(apiRouter, context)
+	initParentSubnet(apiRouter, context)
+	initSubnet(apiRouter, context)
 }

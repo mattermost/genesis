@@ -5,6 +5,7 @@
 package main
 
 import (
+	"net/url"
 	"os"
 
 	"github.com/mattermost/genesis/model"
@@ -51,6 +52,10 @@ var webhookCreateCmd = &cobra.Command{
 		command.SilenceUsage = true
 
 		serverAddress, _ := command.Flags().GetString("server")
+		if _, err := url.Parse(serverAddress); err != nil {
+			return errors.Wrap(err, "provided server address not a valid address")
+		}
+
 		client := model.NewClient(serverAddress)
 
 		ownerID, _ := command.Flags().GetString("owner")
@@ -64,8 +69,7 @@ var webhookCreateCmd = &cobra.Command{
 			return errors.Wrap(err, "failed to create webhook")
 		}
 
-		err = printJSON(webhook)
-		if err != nil {
+		if err = printJSON(webhook); err != nil {
 			return err
 		}
 
@@ -80,6 +84,10 @@ var webhookGetCmd = &cobra.Command{
 		command.SilenceUsage = true
 
 		serverAddress, _ := command.Flags().GetString("server")
+		if _, err := url.Parse(serverAddress); err != nil {
+			return errors.Wrap(err, "provided server address not a valid address")
+		}
+
 		client := model.NewClient(serverAddress)
 
 		webhookID, _ := command.Flags().GetString("webhook")
@@ -91,8 +99,7 @@ var webhookGetCmd = &cobra.Command{
 			return nil
 		}
 
-		err = printJSON(webhook)
-		if err != nil {
+		if err = printJSON(webhook); err != nil {
 			return err
 		}
 
@@ -107,6 +114,10 @@ var webhookListCmd = &cobra.Command{
 		command.SilenceUsage = true
 
 		serverAddress, _ := command.Flags().GetString("server")
+		if _, err := url.Parse(serverAddress); err != nil {
+			return errors.Wrap(err, "provided server address not a valid address")
+		}
+
 		client := model.NewClient(serverAddress)
 
 		owner, _ := command.Flags().GetString("owner")
@@ -137,8 +148,7 @@ var webhookListCmd = &cobra.Command{
 			return nil
 		}
 
-		err = printJSON(webhooks)
-		if err != nil {
+		if err = printJSON(webhooks); err != nil {
 			return err
 		}
 
@@ -153,6 +163,10 @@ var webhookDeleteCmd = &cobra.Command{
 		command.SilenceUsage = true
 
 		serverAddress, _ := command.Flags().GetString("server")
+		if _, err := url.Parse(serverAddress); err != nil {
+			return errors.Wrap(err, "provided server address not a valid address")
+		}
+
 		client := model.NewClient(serverAddress)
 
 		webhookID, _ := command.Flags().GetString("webhook")

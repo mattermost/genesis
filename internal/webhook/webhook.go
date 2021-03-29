@@ -58,8 +58,7 @@ func sendWebhook(hook *model.Webhook, payload *model.WebhookPayload, logger *log
 	req.Header.Set("Content-Type", "application/json")
 
 	client := &http.Client{Timeout: 5 * time.Second}
-	_, err = client.Do(req)
-	if err != nil {
+	if _, err = client.Do(req); err != nil {
 		logger.WithField("webhookURL", hook.URL).WithError(err).Error("Unable to send webhook")
 		return errors.Wrap(err, "unable to send webhook")
 	}

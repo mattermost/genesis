@@ -112,8 +112,7 @@ func handleCreateAccount(c *Context, w http.ResponseWriter, r *http.Request) {
 		State:           model.AccountStateCreationRequested,
 	}
 
-	err = c.Store.CreateAccount(&account)
-	if err != nil {
+	if err = c.Store.CreateAccount(&account); err != nil {
 		c.Logger.WithError(err).Error("failed to create account")
 		w.WriteHeader(http.StatusInternalServerError)
 		return
@@ -127,8 +126,7 @@ func handleCreateAccount(c *Context, w http.ResponseWriter, r *http.Request) {
 		Timestamp: time.Now().UnixNano(),
 		ExtraData: map[string]string{"Environment": c.Environment},
 	}
-	err = webhook.SendToAllWebhooks(c.Store, webhookPayload, c.Logger.WithField("webhookEvent", webhookPayload.NewState))
-	if err != nil {
+	if err = webhook.SendToAllWebhooks(c.Store, webhookPayload, c.Logger.WithField("webhookEvent", webhookPayload.NewState)); err != nil {
 		c.Logger.WithError(err).Error("Unable to process and send webhooks")
 	}
 
@@ -172,15 +170,13 @@ func handleRetryCreateAccount(c *Context, w http.ResponseWriter, r *http.Request
 		}
 		account.State = newState
 
-		err := c.Store.UpdateAccount(account)
-		if err != nil {
+		if err := c.Store.UpdateAccount(account); err != nil {
 			c.Logger.WithError(err).Errorf("failed to retry account creation")
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
 
-		err = webhook.SendToAllWebhooks(c.Store, webhookPayload, c.Logger.WithField("webhookEvent", webhookPayload.NewState))
-		if err != nil {
+		if err := webhook.SendToAllWebhooks(c.Store, webhookPayload, c.Logger.WithField("webhookEvent", webhookPayload.NewState)); err != nil {
 			c.Logger.WithError(err).Error("Unable to process and send webhooks")
 		}
 	}
@@ -248,8 +244,7 @@ func handleProvisionAccount(c *Context, w http.ResponseWriter, r *http.Request) 
 			return
 		}
 
-		err = webhook.SendToAllWebhooks(c.Store, webhookPayload, c.Logger.WithField("webhookEvent", webhookPayload.NewState))
-		if err != nil {
+		if err := webhook.SendToAllWebhooks(c.Store, webhookPayload, c.Logger.WithField("webhookEvent", webhookPayload.NewState)); err != nil {
 			c.Logger.WithError(err).Error("Unable to process and send webhooks")
 		}
 	}
@@ -320,15 +315,13 @@ func handleDeleteAccount(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 		account.State = newState
 
-		err := c.Store.UpdateAccount(account)
-		if err != nil {
+		if err := c.Store.UpdateAccount(account); err != nil {
 			c.Logger.WithError(err).Error("failed to mark account for deletion")
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
 
-		err = webhook.SendToAllWebhooks(c.Store, webhookPayload, c.Logger.WithField("webhookEvent", webhookPayload.NewState))
-		if err != nil {
+		if err := webhook.SendToAllWebhooks(c.Store, webhookPayload, c.Logger.WithField("webhookEvent", webhookPayload.NewState)); err != nil {
 			c.Logger.WithError(err).Error("Unable to process and send webhooks")
 		}
 	}

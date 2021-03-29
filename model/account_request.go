@@ -51,8 +51,7 @@ func NewCreateAccountRequestFromReader(reader io.Reader) (*CreateAccountRequest,
 	}
 
 	createAccountRequest.SetDefaults()
-	err = createAccountRequest.Validate()
-	if err != nil {
+	if err = createAccountRequest.Validate(); err != nil {
 		return nil, errors.Wrap(err, "create account request failed validation")
 	}
 
@@ -81,7 +80,7 @@ func (request *GetAccountsRequest) ApplyToURL(u *url.URL) {
 type ProvisionAccountRequest struct {
 }
 
-// NewProvisionAcco8ntRequestFromReader will create an UpdateAccountRequest from an io.Reader with JSON data.
+// NewProvisionAccountRequestFromReader will create an UpdateAccountRequest from an io.Reader with JSON data.
 func NewProvisionAccountRequestFromReader(reader io.Reader) (*ProvisionAccountRequest, error) {
 	var provisionAccountRequest ProvisionAccountRequest
 	err := json.NewDecoder(reader).Decode(&provisionAccountRequest)

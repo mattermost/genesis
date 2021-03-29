@@ -134,8 +134,7 @@ var serverCmd = &cobra.Command{
 		managedOU, _ := command.Flags().GetString("managed-ou")
 		controlTowerRole, _ := command.Flags().GetString("control-tower-role")
 		controlTowerAccountID, _ := command.Flags().GetString("control-tower-account")
-
-		// Setup the provisioner for actually effecting changes to clusters.
+		// Setup the provisioner for actually effecting changes to enterprise resources.
 		genesisProvisioner := genesis.NewGenesisProvisioner(
 			ssoUserEmail,
 			ssoFirstName,
