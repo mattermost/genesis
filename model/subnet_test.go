@@ -14,7 +14,6 @@ import (
 func TestSubnetClone(t *testing.T) {
 	subnet := &Subnet{
 		CIDR: "10.0.0.0/8",
-		Used: false,
 	}
 
 	clone := subnet.Clone()

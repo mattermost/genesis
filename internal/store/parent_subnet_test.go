@@ -34,8 +34,8 @@ func TestParentSubnets(t *testing.T) {
 		}
 
 		subnet1 := &model.Subnet{
-			CIDR:         "10.80.0.0/24",
-			ParentSubnet: "10.0.0.0/8",
+			CIDR:           "10.80.0.0/24",
+			ParentSubnetID: "10.0.0.0/8",
 		}
 
 		err := sqlStore.AddParentSubnet(parentSubnet1, &[]model.Subnet{*subnet1})
@@ -73,8 +73,8 @@ func TestParentSubnets(t *testing.T) {
 		}
 
 		subnet1 := &model.Subnet{
-			CIDR:         "10.80.0.0/24",
-			ParentSubnet: "10.0.0.0/8",
+			CIDR:           "10.80.0.0/24",
+			ParentSubnetID: "10.0.0.0/8",
 		}
 
 		err := sqlStore.AddParentSubnet(parentSubnet1, &[]model.Subnet{*subnet1})

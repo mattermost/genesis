@@ -15,7 +15,7 @@ type Subnet struct {
 	CIDR           string
 	AccountID      string
 	VPCID          string
-	ParentSubnet   string
+	ParentSubnetID string
 	CreateAt       int64
 	LockAcquiredBy *string
 	LockAcquiredAt int64

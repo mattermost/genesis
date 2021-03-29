@@ -66,7 +66,7 @@ var subnetListCmd = &cobra.Command{
 					subnet.CIDR,
 					subnet.AccountID,
 					subnet.VPCID,
-					subnet.ParentSubnet,
+					subnet.ParentSubnetID,
 				})
 			}
 			table.Render()

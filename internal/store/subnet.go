@@ -98,7 +98,7 @@ func (sqlStore *SQLStore) addSubnets(execer execer, subnets *[]model.Subnet) err
 				"CIDR":           subnet.CIDR,
 				"AccountID":      subnet.AccountID,
 				"VPCID":          subnet.VPCID,
-				"ParentSubnet":   subnet.ParentSubnet,
+				"ParentSubnet":   subnet.ParentSubnetID,
 				"CreateAt":       subnet.CreateAt,
 				"LockAcquiredBy": nil,
 				"LockAcquiredAt": 0,
