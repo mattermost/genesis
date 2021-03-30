@@ -12,11 +12,13 @@ type GenProvisioner struct {
 	managedOU             string
 	controlTowerRole      string
 	controlTowerAccountID string
+	resourceShareID       string
+	coreAccountID         string
 	logger                log.FieldLogger
 }
 
 // NewGenesisProvisioner creates a new GenProvisioner.
-func NewGenesisProvisioner(ssoUserEmail, ssoFirstName, ssoLastName, managedOU, controlTowerRole, controlTowerAccountID string, logger log.FieldLogger) *GenProvisioner {
+func NewGenesisProvisioner(ssoUserEmail, ssoFirstName, ssoLastName, managedOU, controlTowerRole, controlTowerAccountID, resourceShareID, coreAccountID string, logger log.FieldLogger) *GenProvisioner {
 	logger = logger.WithField("provisioner", "genesis")
 
 	return &GenProvisioner{
@@ -26,6 +28,8 @@ func NewGenesisProvisioner(ssoUserEmail, ssoFirstName, ssoLastName, managedOU, c
 		managedOU:             managedOU,
 		controlTowerRole:      controlTowerRole,
 		controlTowerAccountID: controlTowerAccountID,
+		resourceShareID:       resourceShareID,
+		coreAccountID:         coreAccountID,
 		logger:                logger,
 	}
 }

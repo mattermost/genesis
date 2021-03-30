@@ -21,4 +21,7 @@ const (
 	// DefaultAWSClientRetries supplies how many time the AWS client will
 	// retry a failed call.
 	DefaultAWSClientRetries = 3
+
+	// The name of the IAM role to use for TGW share associations.
+	TGWShareAssociationRole = "tgw-share-association-role"
 )

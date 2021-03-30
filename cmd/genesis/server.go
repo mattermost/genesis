@@ -49,6 +49,8 @@ func init() {
 	serverCmd.PersistentFlags().String("managed-ou", "", "The managed organizational unit")
 	serverCmd.PersistentFlags().String("control-tower-role", "", "The IAM role that will be assumed in the Control Tower account")
 	serverCmd.PersistentFlags().String("control-tower-account", "", "The AWS account ID of the Control Tower account")
+	serverCmd.PersistentFlags().String("resource-share-id", "", "The resource share to use when associating tgws with principals")
+	serverCmd.PersistentFlags().String("core-account", "", "The AWS account ID of the Cloud core account")
 
 	serverCmd.MarkFlagRequired("sso-user-email")
 	serverCmd.MarkFlagRequired("sso-first-name")
@@ -56,6 +58,8 @@ func init() {
 	serverCmd.MarkFlagRequired("managed-ou")
 	serverCmd.MarkFlagRequired("control-tower-role")
 	serverCmd.MarkFlagRequired("control-tower-account")
+	serverCmd.MarkFlagRequired("resource-share-id")
+	serverCmd.MarkFlagRequired("core-account")
 
 	// Supervisors
 	serverCmd.PersistentFlags().Int("poll", 30, "The interval in seconds to poll for background work.")
@@ -134,6 +138,9 @@ var serverCmd = &cobra.Command{
 		managedOU, _ := command.Flags().GetString("managed-ou")
 		controlTowerRole, _ := command.Flags().GetString("control-tower-role")
 		controlTowerAccountID, _ := command.Flags().GetString("control-tower-account")
+		resourceShareID, _ := command.Flags().GetString("resource-share-id")
+		coreAccountID, _ := command.Flags().GetString("core-account")
+
 		// Setup the provisioner for actually effecting changes to enterprise resources.
 		genesisProvisioner := genesis.NewGenesisProvisioner(
 			ssoUserEmail,
@@ -142,6 +149,8 @@ var serverCmd = &cobra.Command{
 			managedOU,
 			controlTowerRole,
 			controlTowerAccountID,
+			resourceShareID,
+			coreAccountID,
 			logger,
 		)
 

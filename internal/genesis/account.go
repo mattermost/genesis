@@ -80,6 +80,24 @@ func createAccount(provisioner *GenProvisioner, account *model.Account, logger *
 func provisionAccount(provisioner *GenProvisioner, account *model.Account, logger *logrus.Entry, awsClient awstools.AWS) error {
 	logger.Infof("Provisioning account %s", account.ID)
 
+	logger.Infof("Associating account %s with TGW share", account.ProviderMetadataAWS.AWSAccountID)
+	awsCreds, err := awsClient.AssumeRole(fmt.Sprintf("arn:aws:iam::%s:role/%s", provisioner.coreAccountID, awstools.TGWShareAssociationRole))
+	if err != nil {
+		return errors.Wrap(err, "failed to assume core account iam role")
+	}
+
+	awsConfig := &sdkAWS.Config{
+		Region:      sdkAWS.String(awstools.DefaultAWSRegion),
+		Credentials: awsCreds,
+		MaxRetries:  sdkAWS.Int(awstools.DefaultAWSClientRetries),
+	}
+	CoreAWSClient := awstools.NewAWSClientWithConfig(awsConfig, logger)
+	resourceShareARN := fmt.Sprintf("arn:aws:ram:us-east-1:%s:resource-share/%s", provisioner.coreAccountID, provisioner.resourceShareID)
+
+	if err = CoreAWSClient.AssociateTGWShare(resourceShareARN, account.ProviderMetadataAWS.AWSAccountID); err != nil {
+		return errors.Wrap(err, "failed to associate TGW share with the AWS account")
+	}
+
 	return nil
 }
 
@@ -102,5 +120,25 @@ func deleteAccount(provisioner *GenProvisioner, account *model.Account, logger *
 	if err = awsClientControlTower.DeleteServiceCatalogProduct(account.ProviderMetadataAWS.AccountProductID); err != nil {
 		return errors.Wrap(err, "failed to delete account")
 	}
+
+	logger.Infof("Disassociating account %s with TGW share", account.ProviderMetadataAWS.AWSAccountID)
+
+	coreAWSCreds, err := awsClient.AssumeRole(fmt.Sprintf("arn:aws:iam::%s:role/%s", provisioner.coreAccountID, awstools.TGWShareAssociationRole))
+	if err != nil {
+		return errors.Wrap(err, "failed to assume core account iam role")
+	}
+
+	coreAWSConfig := &sdkAWS.Config{
+		Region:      sdkAWS.String(awstools.DefaultAWSRegion),
+		Credentials: coreAWSCreds,
+		MaxRetries:  sdkAWS.Int(awstools.DefaultAWSClientRetries),
+	}
+	CoreAWSClient := awstools.NewAWSClientWithConfig(coreAWSConfig, logger)
+	resourceShareARN := fmt.Sprintf("arn:aws:ram:us-east-1:%s:resource-share/%s", provisioner.coreAccountID, provisioner.resourceShareID)
+
+	if err = CoreAWSClient.DisassociateTGWShare(resourceShareARN, account.ProviderMetadataAWS.AWSAccountID); err != nil {
+		return errors.Wrap(err, "failed to disassociate TGW share with the AWS account")
+	}
+
 	return nil
 }

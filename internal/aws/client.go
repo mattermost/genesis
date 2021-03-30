@@ -22,6 +22,8 @@ import (
 	"github.com/aws/aws-sdk-go/service/iam/iamiface"
 	"github.com/aws/aws-sdk-go/service/kms"
 	"github.com/aws/aws-sdk-go/service/kms/kmsiface"
+	"github.com/aws/aws-sdk-go/service/ram"
+	"github.com/aws/aws-sdk-go/service/ram/ramiface"
 	"github.com/aws/aws-sdk-go/service/rds"
 	"github.com/aws/aws-sdk-go/service/rds/rdsiface"
 	"github.com/aws/aws-sdk-go/service/resourcegroupstaggingapi"
@@ -45,6 +47,8 @@ type AWS interface {
 	GetCloudEnvironmentName() (string, error)
 	AssumeRole(roleArn string) (*credentials.Credentials, error)
 	GetAccountID() (string, error)
+	AssociateTGWShare(resourceShareARN, principalID string) error
+	DisassociateTGWShare(resourceShareARN, principalID string) error
 }
 
 // NewAWSClientWithConfig returns a new instance of Client with a custom configuration.
@@ -73,6 +77,7 @@ type Service struct {
 	sts                   stsiface.STSAPI
 	appAutoscaling        applicationautoscalingiface.ApplicationAutoScalingAPI
 	serviceCatalog        servicecatalogiface.ServiceCatalogAPI
+	ram                   ramiface.RAMAPI
 }
 
 // NewService creates a new instance of Service.
@@ -91,6 +96,7 @@ func NewService(sess *session.Session) *Service {
 		sts:                   sts.New(sess),
 		appAutoscaling:        applicationautoscaling.New(sess),
 		serviceCatalog:        servicecatalog.New(sess),
+		ram:                   ram.New(sess),
 	}
 }
 
