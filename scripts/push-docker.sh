@@ -18,6 +18,6 @@ fi
 
 echo $DOCKER_PASSWORD | docker login --username $DOCKER_USERNAME --password-stdin
 
-docker tag mattermost/mattermost-cloud:test mattermost/mattermost-cloud:$TAG
+docker tag mattermost/genesis:test mattermost/genesis:$TAG
 
-docker push mattermost/mattermost-cloud:$TAG
+docker push mattermost/genesis:$TAG
