@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # Mattermost Genesis
 
 Mattermost Genesis is a tool meant to smooth Mattermost Cloud enterprise adoption. It provides a service to create isolated AWS accounts, provision the networking inrastructure and prepare the ground for Mattermost cloud cluster creation. It offers CIDR pool storage functionality and future releases will include features like VPC peering automation.
@@ -188,8 +187,3 @@ genesis account delete --account <account-ID>
 i.e.
 genesis account delete --account 6rk5dxsbrjygbewooninyqzfuy
 ```
-=======
-# Genesis
-
-This repository houses the open-source components of Mattermost Genesis. This tool is providing a service to provision AWS Accounts and manage VPC CIDR pools, VPC infrastructure and VPC peering functionality.
->>>>>>> 9995a40a6838b599341e4e6f16c6ebe992ada984
