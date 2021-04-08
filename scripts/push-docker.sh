@@ -3,8 +3,10 @@
 # Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 # See LICENSE.txt for license information.
 
-set -e
-set -u
+set -o xtrace
+set -o errexit
+set -o nounset
+set -o pipefail
 
 if [[ -z "${CIRCLE_TAG:-}" ]]; then
   echo "Pushing lastest for $CIRCLE_BRANCH..."

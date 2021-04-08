@@ -42,9 +42,9 @@ GOVERALLS_VER := master
 GOVERALLS_BIN := goveralls
 GOVERALLS_GEN := $(TOOLS_BIN_DIR)/$(GOVERALLS_BIN)
 
-GOLINT_VER := master
-GOLINT_BIN := golint
-GOLINT_GEN := $(TOOLS_BIN_DIR)/$(GOLINT_BIN)
+GOLANGCILINT_VER := v1.39.0
+GOLANGCILINT_BIN := golangci-lint
+GOLANGCILINT_GEN := $(TOOLS_BIN_DIR)/$(GOLANGCILINT_BIN)
 
 export GO111MODULE=on
 
@@ -58,9 +58,9 @@ check-style: govet lint
 
 ## Runs lint against all packages.
 .PHONY: lint
-lint: $(GOLINT_GEN)
-	@echo Running lint
-	$(GOLINT_GEN) -set_exit_status ./...
+lint: $(GOLANGCILINT_GEN)
+	@echo Running golangci lint
+	$(GOLANGCILINT_GEN) -set_exit_status ./...
 	@echo lint success
 
 ## Runs govet against all packages.
@@ -134,5 +134,6 @@ $(OUTDATED_GEN): ## Build go-mod-outdated.
 $(GOVERALLS_GEN): ## Build goveralls.
 	GOBIN=$(TOOLS_BIN_DIR) $(GO_INSTALL) github.com/mattn/goveralls $(GOVERALLS_BIN) $(GOVERALLS_VER)
 
-$(GOLINT_GEN): ## Build golint.
-	GOBIN=$(TOOLS_BIN_DIR) $(GO_INSTALL) golang.org/x/lint/golint $(GOLINT_BIN) $(GOLINT_VER)
+$(GOLANGCILINT_GEN): ## Build golang-ci lint.
+	GOBIN=$(TOOLS_BIN_DIR) $(GO_INSTALL) github.com/golangci/golangci-lint $(GOLANGCILINT_BIN) $(GOLANGCILINT_VER)
+

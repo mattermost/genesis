@@ -2,7 +2,7 @@ version: 2.1
 executors:
   default:
     docker:
-    - image: circleci/golang:1.15.8
+    - image: circleci/golang:1.16.2
 
 aliases:
 - &restore_cache
@@ -60,7 +60,7 @@ jobs:
 
   test-postgres:
     docker:
-    - image: circleci/golang:1.14.6
+    - image: circleci/golang:1.16.2
       environment:
         GENESIS_DATABASE=postgres://genesis_test@localhost:5432/genesis_test?sslmode=disable
     - image: circleci/postgres:11.2-alpine
@@ -73,13 +73,7 @@ jobs:
     - run:
         name: Waiting for Postgres to be ready
         command: |
-          for i in `seq 1 10`;
-          do
-            nc -z localhost 5432 && echo Success && exit 0
-            echo -n .
-            sleep 1
-          done
-          echo Failed waiting for Postgres && exit 1
+          ./scripts/verify-postgres.sh
     - checkout
     - *restore_cache
     - run: make unittest
@@ -93,12 +87,6 @@ jobs:
     - setup_remote_docker
     - run: make build-image
     - run: ./scripts/push-docker-pr.sh
-    - run:
-        name: Re-run Docker Push if fail
-        command: |
-            sleep 20
-            ./scripts/push-docker-pr.sh
-        when: on_fail
 
   push-docker:
     executor:
@@ -126,10 +114,11 @@ jobs:
     - image: arminc/clair-db:latest
     steps:
     - checkout
-    - run: |
-        export CI_APPLICATION_TAG="${CIRCLE_SHA1:0:7}"
-        export DOCKER_USER=$DOCKER_USERNAME
-        /analyzer run
+    - run:
+        environment:
+          CI_APPLICATION_TAG: "${CIRCLE_SHA1:0:7}"
+          DOCKER_USER: $DOCKER_USERNAME
+        command: /analyzer run
     - store_artifacts:
         path: gl-container-scanning-report.json
         destination: security-scan
