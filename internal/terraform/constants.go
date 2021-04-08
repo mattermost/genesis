@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 //
 
-package aws
+package terraform
 
 const (
 	// DefaultAWSRegion is the default AWS region for AWS resources.
@@ -24,7 +24,4 @@ const (
 
 	// The name of the IAM role to use for TGW share associations.
 	TGWShareAssociationRole = "tgw-share-association-role"
-
-	// The ARN of the IAM policy to attach to provisioning role.
-	AttachIAMPolicyARN = "arn:aws:iam::aws:policy/AdministratorAccess"
 )

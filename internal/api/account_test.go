@@ -432,6 +432,7 @@ func TestProvisionAccount(t *testing.T) {
 		Provider:                model.ProviderAWS,
 		ServiceCatalogProductID: "service-catalog-id",
 		Provision:               false,
+		Subnet:                  "10.0.0.0/24",
 	})
 	require.NoError(t, err)
 

@@ -15,12 +15,24 @@ type AssumeRoleCredentialsProvider struct {
 	AssumeRoleCredentials *sts.Credentials
 }
 
-// CreateProvisioningIAMRole is used to crate the provisioning role in new accounts.
+// CreateProvisioningIAMRole is used to create the provisioning role in new accounts.
 func (a *Client) CreateProvisioningIAMRole(trustAccountID string) error {
 	_, err := a.Service().iam.CreateRole(&iam.CreateRoleInput{
 		AssumeRolePolicyDocument: aws.String(fmt.Sprintf("{\n  \"Version\": \"2012-10-17\",\n  \"Statement\": [\n    {\n      \"Effect\": \"Allow\",\n      \"Principal\": {\n        \"AWS\": \"arn:aws:iam::%s:root\"\n      },\n      \"Action\": \"sts:AssumeRole\"\n    }\n  ]\n}", trustAccountID)),
 		Description:              aws.String("This is the provisioning Role. Will be used by Genesis and other applications to provision the account."),
 		RoleName:                 aws.String(AccountProvisioningRoleName),
+	})
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+// AttachIAMPolicy is used to attach an IAM policy to the provisioning role in new accounts.
+func (a *Client) AttachIAMPolicy(trustAccountID string) error {
+	_, err := a.Service().iam.AttachRolePolicy(&iam.AttachRolePolicyInput{
+		PolicyArn: aws.String(AttachIAMPolicyARN),
+		RoleName:  aws.String(AccountProvisioningRoleName),
 	})
 	if err != nil {
 		return err

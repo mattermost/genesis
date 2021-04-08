@@ -76,6 +76,18 @@ func (s *mockAccountStore) DeleteAccount(AccountID string) error {
 	return nil
 }
 
+func (s *mockAccountStore) GetRandomAvailableSubnet() (*model.Subnet, error) {
+	return nil, nil
+}
+
+func (s *mockAccountStore) GetSubnetByCIDR(cidr string) (*model.Subnet, error) {
+	return nil, nil
+}
+
+func (s *mockAccountStore) UpdateSubnet(subnet *model.Subnet) error {
+	return nil
+}
+
 func (s *mockAccountStore) GetWebhooks(filter *model.WebhookFilter) ([]*model.Webhook, error) {
 	return nil, nil
 }

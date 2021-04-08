@@ -24,6 +24,29 @@ type Account struct {
 	LockAcquiredAt      int64
 }
 
+// AccountCreation stores information neeeded for account creation.
+type AccountCreation struct {
+	SSOUserEmail          string
+	SSOFirstName          string
+	SSOLastName           string
+	ManagedOU             string
+	ControlTowerRole      string
+	ControlTowerAccountID string
+}
+
+// AccountProvision stores information neeeded for account provision.
+type AccountProvision struct {
+	StateBucket          string
+	TransitGatewayID     string
+	Environment          string
+	TransitGatewayRoutes string
+	TeleportCIDR         string
+	CncCIDRs             string
+	BindServerIPs        string
+	ResourceShareID      string
+	CoreAccountID        string
+}
+
 // Clone returns a deep copy the account.
 func (a *Account) Clone() *Account {
 	var clone Account

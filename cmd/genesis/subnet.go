@@ -63,15 +63,14 @@ var subnetListCmd = &cobra.Command{
 		if outputToTable {
 			table := tablewriter.NewWriter(os.Stdout)
 			table.SetAlignment(tablewriter.ALIGN_LEFT)
-			table.SetHeader([]string{"SUBNET", "CIDR", "ACCOUNT ID", "VPC ID", "PARENT SUBNET"})
+			table.SetHeader([]string{"SUBNET", "CIDR", "ACCOUNT ID", "PARENT SUBNET"})
 
 			for _, subnet := range subnets {
 				table.Append([]string{
 					subnet.ID,
 					subnet.CIDR,
 					subnet.AccountID,
-					subnet.VPCID,
-					subnet.ParentSubnetID,
+					subnet.ParentSubnet,
 				})
 			}
 			table.Render()

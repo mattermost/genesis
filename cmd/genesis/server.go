@@ -51,6 +51,12 @@ func init() {
 	serverCmd.PersistentFlags().String("control-tower-account", "", "The AWS account ID of the Control Tower account")
 	serverCmd.PersistentFlags().String("resource-share-id", "", "The resource share to use when associating tgws with principals")
 	serverCmd.PersistentFlags().String("core-account", "", "The AWS account ID of the Cloud core account")
+	serverCmd.PersistentFlags().String("state-bucket", "", "The terraform state bucket")
+	serverCmd.PersistentFlags().String("tgw-id", "", "The Transit Gateway ID to use for VPC TGW attachments")
+	serverCmd.PersistentFlags().String("tgw-routes", "", "The Transit Gateway Route for VPC Route Tables. Should be monitoring CIDR range")
+	serverCmd.PersistentFlags().String("teleport-cidr", "", "The Teleport CIDR that will be allowing teleport to the cluster and nodes")
+	serverCmd.PersistentFlags().String("cnc-cidrs", "", "The CIDRs of the CnC subnets that will get access to the clusters")
+	serverCmd.PersistentFlags().String("bind-ips", "", "The Bind servers that should be passed in the VPC DHCP options")
 
 	serverCmd.MarkFlagRequired("sso-user-email")
 	serverCmd.MarkFlagRequired("sso-first-name")
@@ -60,6 +66,12 @@ func init() {
 	serverCmd.MarkFlagRequired("control-tower-account")
 	serverCmd.MarkFlagRequired("resource-share-id")
 	serverCmd.MarkFlagRequired("core-account")
+	serverCmd.MarkFlagRequired("state-bucket")
+	serverCmd.MarkFlagRequired("tgw-id")
+	serverCmd.MarkFlagRequired("teleport-cidr")
+	serverCmd.MarkFlagRequired("tgw-routes")
+	serverCmd.MarkFlagRequired("cnc-cidrs")
+	serverCmd.MarkFlagRequired("bind-ips")
 
 	// Supervisors
 	serverCmd.PersistentFlags().Int("poll", 30, "The interval in seconds to poll for background work.")
@@ -140,17 +152,38 @@ var serverCmd = &cobra.Command{
 		controlTowerAccountID, _ := command.Flags().GetString("control-tower-account")
 		resourceShareID, _ := command.Flags().GetString("resource-share-id")
 		coreAccountID, _ := command.Flags().GetString("core-account")
+		stateBucket, _ := command.Flags().GetString("state-bucket")
+		transitGatewayID, _ := command.Flags().GetString("tgw-id")
+		transitGatewayRoutes, _ := command.Flags().GetString("tgw-routes")
+		teleportCIDR, _ := command.Flags().GetString("teleport-cidr")
+		cncCIDRs, _ := command.Flags().GetString("cnc-cidrs")
+		bindServerIPs, _ := command.Flags().GetString("bind-ips")
+
+		accountCreation := model.AccountCreation{
+			SSOUserEmail:          ssoUserEmail,
+			SSOFirstName:          ssoFirstName,
+			SSOLastName:           ssoLastName,
+			ManagedOU:             managedOU,
+			ControlTowerRole:      controlTowerRole,
+			ControlTowerAccountID: controlTowerAccountID,
+		}
+
+		accountProvision := model.AccountProvision{
+			ResourceShareID:      resourceShareID,
+			CoreAccountID:        coreAccountID,
+			StateBucket:          stateBucket,
+			TransitGatewayID:     transitGatewayID,
+			Environment:          environment,
+			TransitGatewayRoutes: transitGatewayRoutes,
+			TeleportCIDR:         teleportCIDR,
+			CncCIDRs:             cncCIDRs,
+			BindServerIPs:        bindServerIPs,
+		}
 
 		// Setup the provisioner for actually effecting changes to enterprise resources.
 		genesisProvisioner := genesis.NewGenesisProvisioner(
-			ssoUserEmail,
-			ssoFirstName,
-			ssoLastName,
-			managedOU,
-			controlTowerRole,
-			controlTowerAccountID,
-			resourceShareID,
-			coreAccountID,
+			accountCreation,
+			accountProvision,
 			logger,
 		)
 

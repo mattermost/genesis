@@ -89,7 +89,6 @@ var migrations = []migration{
 				ID TEXT PRIMARY KEY,
 				CIDR TEXT NOT NULL,
 				AccountID TEXT NOT NULL,
-				VPCID TEXT NOT NULL,
 				ParentSubnet TEXT NOT NULL,
 				CreateAt BIGINT NOT NULL,
 				LockAcquiredBy CHAR(26) NULL,

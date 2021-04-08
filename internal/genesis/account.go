@@ -5,6 +5,7 @@ import (
 
 	sdkAWS "github.com/aws/aws-sdk-go/aws"
 	awstools "github.com/mattermost/genesis/internal/aws"
+	terraform "github.com/mattermost/genesis/internal/terraform"
 	model "github.com/mattermost/genesis/model"
 	"github.com/pkg/errors"
 
@@ -15,7 +16,7 @@ import (
 func createAccount(provisioner *GenProvisioner, account *model.Account, logger *logrus.Entry, awsClient awstools.AWS) error {
 	logger.Infof("Creating account %s", account.ID)
 
-	awsCreds, err := awsClient.AssumeRole(fmt.Sprintf("arn:aws:iam::%s:role/%s", provisioner.controlTowerAccountID, provisioner.controlTowerRole))
+	awsCreds, err := awsClient.AssumeRole(fmt.Sprintf("arn:aws:iam::%s:role/%s", provisioner.accountCreation.ControlTowerAccountID, provisioner.accountCreation.ControlTowerRole))
 	if err != nil {
 		return errors.Wrap(err, "failed to assume control tower iam role")
 	}
@@ -27,7 +28,7 @@ func createAccount(provisioner *GenProvisioner, account *model.Account, logger *
 	}
 	awsClientControlTower := awstools.NewAWSClientWithConfig(awsConfig, logger)
 
-	if err = awsClientControlTower.ProvisionServiceCatalogProduct(provisioner.ssoUserEmail, provisioner.ssoFirstName, provisioner.ssoLastName, provisioner.managedOU, account); err != nil {
+	if err = awsClientControlTower.ProvisionServiceCatalogProduct(provisioner.accountCreation.SSOUserEmail, provisioner.accountCreation.SSOFirstName, provisioner.accountCreation.SSOLastName, provisioner.accountCreation.ManagedOU, account); err != nil {
 		return errors.Wrap(err, "failed to provision service catalog product")
 	}
 
@@ -54,7 +55,6 @@ func createAccount(provisioner *GenProvisioner, account *model.Account, logger *
 	if err != nil {
 		return errors.Wrap(err, "failed to get AWS account physical ID")
 	}
-	logger.Infof("Code running in account %s", genesisAccount)
 
 	//temp client is used for one time creation of IAM role in destination account that will be used for all future actions in the account
 	awsTempCreds, err := awsClientControlTower.AssumeRole(fmt.Sprintf("arn:aws:iam::%s:role/AWSControlTowerExecution", account.ProviderMetadataAWS.AWSAccountID))
@@ -73,6 +73,11 @@ func createAccount(provisioner *GenProvisioner, account *model.Account, logger *
 		return errors.Wrap(err, "failed to create provisioning IAM role in new account")
 	}
 
+	logger.Infof("Attaching IAM policy in account %s", account.ProviderMetadataAWS.AWSAccountID)
+	if err = tempDestinationAWSClient.AttachIAMPolicy(genesisAccount); err != nil {
+		return errors.Wrap(err, "failed to attach IAM policy to provisioning IAM role")
+	}
+
 	return nil
 }
 
@@ -81,7 +86,7 @@ func provisionAccount(provisioner *GenProvisioner, account *model.Account, logge
 	logger.Infof("Provisioning account %s", account.ID)
 
 	logger.Infof("Associating account %s with TGW share", account.ProviderMetadataAWS.AWSAccountID)
-	awsCreds, err := awsClient.AssumeRole(fmt.Sprintf("arn:aws:iam::%s:role/%s", provisioner.coreAccountID, awstools.TGWShareAssociationRole))
+	awsCreds, err := awsClient.AssumeRole(fmt.Sprintf("arn:aws:iam::%s:role/%s", provisioner.accountProvision.CoreAccountID, awstools.TGWShareAssociationRole))
 	if err != nil {
 		return errors.Wrap(err, "failed to assume core account iam role")
 	}
@@ -92,20 +97,52 @@ func provisionAccount(provisioner *GenProvisioner, account *model.Account, logge
 		MaxRetries:  sdkAWS.Int(awstools.DefaultAWSClientRetries),
 	}
 	CoreAWSClient := awstools.NewAWSClientWithConfig(awsConfig, logger)
-	resourceShareARN := fmt.Sprintf("arn:aws:ram:us-east-1:%s:resource-share/%s", provisioner.coreAccountID, provisioner.resourceShareID)
+	resourceShareARN := fmt.Sprintf("arn:aws:ram:us-east-1:%s:resource-share/%s", provisioner.accountProvision.CoreAccountID, provisioner.accountProvision.ResourceShareID)
 
 	if err = CoreAWSClient.AssociateTGWShare(resourceShareARN, account.ProviderMetadataAWS.AWSAccountID); err != nil {
 		return errors.Wrap(err, "failed to associate TGW share with the AWS account")
 	}
 
+	tf, err := terraform.New("terraform/aws/networking", provisioner.accountProvision.StateBucket, logger)
+	if err != nil {
+		return errors.Wrap(err, "failed to initiate Terraform")
+	}
+
+	err = tf.Init(account.ID)
+	if err != nil {
+		return errors.Wrap(err, "failed to run Terraform init")
+	}
+
+	logger.Infof("Applying Terraform template with VPC %s deployment", account.AccountMetadata.Subnet)
+	if err = tf.Apply(provisioner.accountProvision, account.AccountMetadata.Subnet, account.ProviderMetadataAWS.AWSAccountID); err != nil {
+		return errors.Wrap(err, "failed to run Terraform apply")
+	}
+	logger.Info("Successfully ran Terraform apply")
 	return nil
 }
 
 // deleteAccount is used to delete AWS accounts
 func deleteAccount(provisioner *GenProvisioner, account *model.Account, logger *logrus.Entry, awsClient awstools.AWS) error {
 
+	tf, err := terraform.New("terraform/aws/networking", provisioner.accountProvision.StateBucket, logger)
+	if err != nil {
+		return errors.Wrap(err, "failed to initiate Terraform")
+	}
+
+	err = tf.Init(account.ID)
+	if err != nil {
+		return errors.Wrap(err, "failed to run Terraform init")
+	}
+
+	logger.Info("Destroying Terraform resources")
+	err = tf.Destroy(account.ProviderMetadataAWS.AWSAccountID)
+	if err != nil {
+		return errors.Wrap(err, "failed to run Terraform destroy")
+	}
+	logger.Info("Successfully destroyed Terraform resources")
+
 	logger.Infof("Deleting account with physical id %s", account.ProviderMetadataAWS.AWSAccountID)
-	awsCreds, err := awsClient.AssumeRole(fmt.Sprintf("arn:aws:iam::%s:role/%s", provisioner.controlTowerAccountID, provisioner.controlTowerRole))
+	awsCreds, err := awsClient.AssumeRole(fmt.Sprintf("arn:aws:iam::%s:role/%s", provisioner.accountCreation.ControlTowerAccountID, provisioner.accountCreation.ControlTowerRole))
 	if err != nil {
 		return err
 	}
@@ -121,23 +158,25 @@ func deleteAccount(provisioner *GenProvisioner, account *model.Account, logger *
 		return errors.Wrap(err, "failed to delete account")
 	}
 
-	logger.Infof("Disassociating account %s with TGW share", account.ProviderMetadataAWS.AWSAccountID)
+	if account.AccountMetadata.Provision {
+		logger.Infof("Disassociating account %s with TGW share", account.ProviderMetadataAWS.AWSAccountID)
 
-	coreAWSCreds, err := awsClient.AssumeRole(fmt.Sprintf("arn:aws:iam::%s:role/%s", provisioner.coreAccountID, awstools.TGWShareAssociationRole))
-	if err != nil {
-		return errors.Wrap(err, "failed to assume core account iam role")
-	}
+		coreAWSCreds, err := awsClient.AssumeRole(fmt.Sprintf("arn:aws:iam::%s:role/%s", provisioner.accountProvision.CoreAccountID, awstools.TGWShareAssociationRole))
+		if err != nil {
+			return errors.Wrap(err, "failed to assume core account iam role")
+		}
 
-	coreAWSConfig := &sdkAWS.Config{
-		Region:      sdkAWS.String(awstools.DefaultAWSRegion),
-		Credentials: coreAWSCreds,
-		MaxRetries:  sdkAWS.Int(awstools.DefaultAWSClientRetries),
-	}
-	CoreAWSClient := awstools.NewAWSClientWithConfig(coreAWSConfig, logger)
-	resourceShareARN := fmt.Sprintf("arn:aws:ram:us-east-1:%s:resource-share/%s", provisioner.coreAccountID, provisioner.resourceShareID)
+		coreAWSConfig := &sdkAWS.Config{
+			Region:      sdkAWS.String(awstools.DefaultAWSRegion),
+			Credentials: coreAWSCreds,
+			MaxRetries:  sdkAWS.Int(awstools.DefaultAWSClientRetries),
+		}
+		CoreAWSClient := awstools.NewAWSClientWithConfig(coreAWSConfig, logger)
+		resourceShareARN := fmt.Sprintf("arn:aws:ram:us-east-1:%s:resource-share/%s", provisioner.accountProvision.CoreAccountID, provisioner.accountProvision.ResourceShareID)
 
-	if err = CoreAWSClient.DisassociateTGWShare(resourceShareARN, account.ProviderMetadataAWS.AWSAccountID); err != nil {
-		return errors.Wrap(err, "failed to disassociate TGW share with the AWS account")
+		if err = CoreAWSClient.DisassociateTGWShare(resourceShareARN, account.ProviderMetadataAWS.AWSAccountID); err != nil {
+			return errors.Wrap(err, "failed to disassociate TGW share with the AWS account")
+		}
 	}
 
 	return nil

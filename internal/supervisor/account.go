@@ -24,6 +24,10 @@ type accountStore interface {
 	UnlockAccount(accountID string, lockerID string, force bool) (bool, error)
 	DeleteAccount(accountID string) error
 
+	GetRandomAvailableSubnet() (*model.Subnet, error)
+	GetSubnetByCIDR(cidr string) (*model.Subnet, error)
+	UpdateSubnet(subnet *model.Subnet) error
+
 	GetWebhooks(filter *model.WebhookFilter) ([]*model.Webhook, error)
 }
 
@@ -181,9 +185,24 @@ func (s *AccountSupervisor) createAccount(account *model.Account, logger log.Fie
 
 	logger.Info("Finished creating account")
 	if account.AccountMetadata.Provision {
+		if account.AccountMetadata.Subnet == "" {
+			logger.Info("Allocating random subnet")
+			subnet, err := s.store.GetRandomAvailableSubnet()
+			if err != nil {
+				logger.WithError(err).Error("Failed to  get a random available subnet")
+				return model.AccountStateProvisioningFailed
+			}
+			logger.Infof("Subnet %s allocated for VPC provisioning", subnet.CIDR)
+			account.AccountMetadata.Subnet = subnet.CIDR
+			subnet.AccountID = account.ProviderMetadataAWS.AWSAccountID
+			if err := s.store.UpdateSubnet(subnet); err != nil {
+				logger.WithError(err).Error("failed to update subnet with account ID")
+				return model.AccountStateProvisioningFailed
+			}
+		}
 		return s.provisionAccount(account, logger)
 	}
-	return model.AccountStateStable
+	return s.refreshAccountMetadata(account, logger)
 }
 
 func (s *AccountSupervisor) provisionAccount(account *model.Account, logger log.FieldLogger) string {
@@ -216,6 +235,18 @@ func (s *AccountSupervisor) deleteAccount(account *model.Account, logger log.Fie
 
 	if err = s.store.DeleteAccount(account.ID); err != nil {
 		logger.WithError(err).Error("Failed to record updated account after deletion")
+		return model.AccountStateDeletionFailed
+	}
+
+	subnet, err := s.store.GetSubnetByCIDR(account.AccountMetadata.Subnet)
+	if err != nil {
+		logger.WithError(err).Error("Failed to get subnet for cleanup")
+		return model.AccountStateDeletionFailed
+	}
+
+	subnet.AccountID = ""
+	if err = s.store.UpdateSubnet(subnet); err != nil {
+		logger.WithError(err).Error("Failed to clean subnet")
 		return model.AccountStateDeletionFailed
 	}
 

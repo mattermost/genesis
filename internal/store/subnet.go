@@ -16,7 +16,7 @@ var subnetSelect sq.SelectBuilder
 
 func init() {
 	subnetSelect = sq.
-		Select("SubnetPool.ID", "CIDR", "AccountID", "VPCID", "ParentSubnet",
+		Select("SubnetPool.ID", "CIDR", "AccountID", "ParentSubnet",
 			"LockAcquiredBy", "LockAcquiredAt").
 		From("SubnetPool")
 }
@@ -43,14 +43,43 @@ func (rc *rawSubnets) toSubnets() ([]*model.Subnet, error) {
 	return subnets, nil
 }
 
-// GetSubnet fetches the given subnet by subnet range.
-func (sqlStore *SQLStore) GetSubnet(cidr string) (*model.Subnet, error) {
+// GetSubnet fetches a random available subnet.
+func (sqlStore *SQLStore) GetRandomAvailableSubnet() (*model.Subnet, error) {
+	filter := &model.SubnetFilter{
+		Page:    1,
+		PerPage: 1,
+		Free:    true,
+	}
+
+	subnet, err := sqlStore.GetSubnets(filter)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to query for free subnet")
+	}
+
+	return subnet[0], nil
+}
+
+// GetSubnet fetches a subnet by its provided CIDR range.
+func (sqlStore *SQLStore) GetSubnetByCIDR(cidr string) (*model.Subnet, error) {
 	var rawSubnet rawSubnet
-	err := sqlStore.getBuilder(sqlStore.db, &rawSubnet, subnetSelect.Where("ID = ?", cidr))
+	err := sqlStore.getBuilder(sqlStore.db, &rawSubnet, subnetSelect.Where("CIDR = ?", cidr))
 	if err == sql.ErrNoRows {
 		return nil, nil
 	} else if err != nil {
 		return nil, errors.Wrap(err, "failed to get subnet by range")
+	}
+
+	return rawSubnet.toSubnet()
+}
+
+// GetSubnet fetches the given subnet by subnet range.
+func (sqlStore *SQLStore) GetSubnet(id string) (*model.Subnet, error) {
+	var rawSubnet rawSubnet
+	err := sqlStore.getBuilder(sqlStore.db, &rawSubnet, subnetSelect.Where("ID = ?", id))
+	if err == sql.ErrNoRows {
+		return nil, nil
+	} else if err != nil {
+		return nil, errors.Wrap(err, "failed to get subnet by id")
 	}
 
 	return rawSubnet.toSubnet()
@@ -62,14 +91,14 @@ func (sqlStore *SQLStore) GetSubnets(filter *model.SubnetFilter) ([]*model.Subne
 		OrderBy("CreateAt ASC")
 	builder = sqlStore.applySubnetsFilter(builder, filter)
 
+	if filter.Free {
+		builder = builder.Where("AccountID == '' ")
+	}
+
 	var rawSubnets rawSubnets
 	err := sqlStore.selectBuilder(sqlStore.db, &rawSubnets, builder)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to query for subnets")
-	}
-
-	if filter.Free {
-		builder = builder.Where("AccountID = NULL")
 	}
 
 	return rawSubnets.toSubnets()
@@ -97,8 +126,7 @@ func (sqlStore *SQLStore) addSubnets(execer execer, subnets *[]model.Subnet) err
 				"ID":             subnet.ID,
 				"CIDR":           subnet.CIDR,
 				"AccountID":      subnet.AccountID,
-				"VPCID":          subnet.VPCID,
-				"ParentSubnet":   subnet.ParentSubnetID,
+				"ParentSubnet":   subnet.ParentSubnet,
 				"CreateAt":       subnet.CreateAt,
 				"LockAcquiredBy": nil,
 				"LockAcquiredAt": 0,
@@ -118,7 +146,6 @@ func (sqlStore *SQLStore) UpdateSubnet(subnet *model.Subnet) error {
 		Update("SubnetPool").
 		SetMap(map[string]interface{}{
 			"AccountID": subnet.AccountID,
-			"VPCID":     subnet.VPCID,
 		}).
 		Where("ID = ?", subnet.ID),
 	)

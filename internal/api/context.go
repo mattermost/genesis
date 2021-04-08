@@ -37,6 +37,8 @@ type Store interface {
 	LockParentSubnet(subnet, lockerID string) (bool, error)
 	UnlockParentSubnet(subnet, lockerID string, force bool) (bool, error)
 
+	GetSubnetByCIDR(cidr string) (*model.Subnet, error)
+	GetRandomAvailableSubnet() (*model.Subnet, error)
 	GetSubnet(id string) (*model.Subnet, error)
 	GetSubnets(filter *model.SubnetFilter) ([]*model.Subnet, error)
 	UpdateSubnet(Subnet *model.Subnet) error

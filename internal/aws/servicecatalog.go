@@ -58,10 +58,11 @@ func (a *Client) GetAccountDetails(account *model.Account) error {
 		if *product.Name == account.ID {
 			account.ProviderMetadataAWS.AWSAccountID = *product.PhysicalId
 			account.ProviderMetadataAWS.AccountProductID = *product.Id
+			return nil
 		}
 	}
 
-	return nil
+	return errors.Errorf("Service catalog product not found in provisioned products")
 }
 
 // GetProvisioningArtifactID returns the current active Service Catalog provisioning artifact ID.
@@ -174,7 +175,10 @@ func (a *Client) DeleteServiceCatalogProduct(productID string) error {
 	_, err := a.Service().serviceCatalog.TerminateProvisionedProduct(&servicecatalog.TerminateProvisionedProductInput{
 		ProvisionedProductId: aws.String(productID),
 	})
-	if err != nil {
+	if err != nil && IsErrorCode(err, servicecatalog.ErrCodeResourceNotFoundException) {
+		a.logger.Info("Service catalog product already deleted, skipping...")
+		return nil
+	} else if err != nil {
 		return err
 	}
 	return nil

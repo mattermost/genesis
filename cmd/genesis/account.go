@@ -22,10 +22,12 @@ func init() {
 	accountCreateCmd.Flags().String("service-catalog-product", "", "The service catalog product id to provision a new account")
 	accountCreateCmd.Flags().String("provider", "aws", "Cloud provider hosting the account.")
 	accountCreateCmd.Flags().Bool("provision", false, "When set to true provision an account after creation.")
+	accountCreateCmd.Flags().String("subnet", "", "The subnet CIDR to use for VPC creation. If not specified a random one will be selected.")
 
 	accountCreateCmd.MarkFlagRequired("service-catalog-product")
 
 	accountProvisionCmd.Flags().String("account", "", "The id of the account to be deleted.")
+	accountProvisionCmd.Flags().String("subnet", "", "The subnet CIDR to use for VPC creation. If not specified a random one will be selected.")
 	accountProvisionCmd.MarkFlagRequired("account")
 
 	accountDeleteCmd.Flags().String("account", "", "The id of the account to be deleted.")
@@ -73,11 +75,13 @@ var accountCreateCmd = &cobra.Command{
 		provider, _ := command.Flags().GetString("provider")
 		serviceCatalogProductID, _ := command.Flags().GetString("service-catalog-product")
 		provision, _ := command.Flags().GetBool("provision")
+		subnet, _ := command.Flags().GetString("subnet")
 
 		request := &model.CreateAccountRequest{
 			Provider:                provider,
 			ServiceCatalogProductID: serviceCatalogProductID,
 			Provision:               provision,
+			Subnet:                  subnet,
 		}
 
 		dryRun, _ := command.Flags().GetBool("dry-run")
@@ -116,8 +120,11 @@ var accountProvisionCmd = &cobra.Command{
 
 		client := model.NewClient(serverAddress)
 		accountID, _ := command.Flags().GetString("account")
+		subnet, _ := command.Flags().GetString("subnet")
 
-		var request *model.ProvisionAccountRequest = nil
+		request := &model.ProvisionAccountRequest{
+			Subnet: subnet,
+		}
 
 		dryRun, _ := command.Flags().GetBool("dry-run")
 		if dryRun {

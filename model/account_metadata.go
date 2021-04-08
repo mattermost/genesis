@@ -9,6 +9,7 @@ import "encoding/json"
 // AccountMetadata is the provider metadata stored in a model.Account.
 type AccountMetadata struct {
 	Provision bool
+	Subnet    string
 }
 
 // NewAccountMetadata creates an instance of AccountMetadata given the raw provider metadata.

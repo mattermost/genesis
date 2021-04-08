@@ -106,6 +106,7 @@ func handleCreateAccount(c *Context, w http.ResponseWriter, r *http.Request) {
 		},
 		AccountMetadata: &model.AccountMetadata{
 			Provision: createAccountRequest.Provision,
+			Subnet:    createAccountRequest.Subnet,
 		},
 		Provisioner:     "genesis",
 		APISecurityLock: createAccountRequest.APISecurityLock,
@@ -210,7 +211,7 @@ func handleProvisionAccount(c *Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	_, err := model.NewProvisionAccountRequestFromReader(r.Body)
+	provisionAccountRequest, err := model.NewProvisionAccountRequestFromReader(r.Body)
 	if err != nil {
 		c.Logger.WithError(err).Error("failed to deserialize account provision request body")
 		w.WriteHeader(http.StatusInternalServerError)
@@ -237,8 +238,36 @@ func handleProvisionAccount(c *Context, w http.ResponseWriter, r *http.Request) 
 		account.State = newState
 		account.AccountMetadata.Provision = true
 
-		err := c.Store.UpdateAccount(account)
-		if err != nil {
+		if account.AccountMetadata.Subnet == "" {
+			var subnet *model.Subnet
+			if provisionAccountRequest.Subnet != "" {
+				subnet, err = c.Store.GetSubnetByCIDR(provisionAccountRequest.Subnet)
+				if err != nil {
+					c.Logger.WithError(err).Error("failed to get the passed CIDR from the subnet pool store")
+					w.WriteHeader(http.StatusInternalServerError)
+					return
+				}
+				account.AccountMetadata.Subnet = provisionAccountRequest.Subnet
+			} else {
+				c.Logger.Info("Allocating random subnet")
+				subnet, err = c.Store.GetRandomAvailableSubnet()
+				if err != nil {
+					c.Logger.WithError(err).Error("failed to get a random available subnet")
+					w.WriteHeader(http.StatusInternalServerError)
+					return
+				}
+				c.Logger.Infof("Subnet %s allocated for VPC provisioning", subnet.CIDR)
+				account.AccountMetadata.Subnet = subnet.CIDR
+			}
+			subnet.AccountID = account.ProviderMetadataAWS.AWSAccountID
+			if err := c.Store.UpdateSubnet(subnet); err != nil {
+				c.Logger.WithError(err).Error("failed to update subnet with account ID")
+				w.WriteHeader(http.StatusInternalServerError)
+				return
+			}
+		}
+
+		if err := c.Store.UpdateAccount(account); err != nil {
 			c.Logger.WithError(err).Errorf("failed to mark account provisioning state")
 			w.WriteHeader(http.StatusInternalServerError)
 			return
@@ -285,24 +314,6 @@ func handleDeleteAccount(c *Context, w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
-
-	// TODO: will be used soon
-	// genesisResources, err := c.Store.GetGenesisResources(&model.GenesisResourcesFilter{
-	// 	AccountID:      account.ID,
-	// 	IncludeDeleted: false,
-	// 	PerPage:        model.AllPerPage,
-	// })
-	// if err != nil {
-	// 	c.Logger.WithError(err).Error("failed to get genesis resources")
-	// 	w.WriteHeader(http.StatusInternalServerError)
-	// 	return
-	// }
-
-	// if len(genesisResources) != 0 {
-	// 	c.Logger.Errorf("unable to delete account while it still has %d genesis resources", len(genesisResources))
-	// 	w.WriteHeader(http.StatusForbidden)
-	// 	return
-	// }
 
 	if account.State != newState {
 		webhookPayload := &model.WebhookPayload{
