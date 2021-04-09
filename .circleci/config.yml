@@ -70,8 +70,8 @@ jobs:
     executor:
       name: default
     steps:
-    - run: ./scripts/verify-postgres.sh
     - checkout
+    - run: ./scripts/verify-postgres.sh
     - *restore_cache
     - run: make unittest
     - *save_cache
