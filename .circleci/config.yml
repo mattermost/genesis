@@ -70,10 +70,7 @@ jobs:
     executor:
       name: default
     steps:
-    - run:
-        name: Waiting for Postgres to be ready
-        command: |
-          ./scripts/verify-postgres.sh
+    - run: ./scripts/verify-postgres.sh
     - checkout
     - *restore_cache
     - run: make unittest

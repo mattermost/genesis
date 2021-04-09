@@ -48,12 +48,18 @@ type AccountProvision struct {
 }
 
 // Clone returns a deep copy the account.
-func (a *Account) Clone() *Account {
+func (a *Account) Clone() (*Account, error) {
 	var clone Account
-	data, _ := json.Marshal(a)
-	json.Unmarshal(data, &clone)
+	data, err := json.Marshal(a)
+	if err != nil {
+		return nil, err
+	}
 
-	return &clone
+	if err = json.Unmarshal(data, &clone); err != nil {
+		return nil, err
+	}
+
+	return &clone, nil
 }
 
 // AccountFromReader decodes a json-encoded account from the given io.Reader.

@@ -9,9 +9,7 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"os/exec"
 	"os/signal"
-	"strings"
 	"syscall"
 	"time"
 
@@ -58,20 +56,20 @@ func init() {
 	serverCmd.PersistentFlags().String("cnc-cidrs", "", "The CIDRs of the CnC subnets that will get access to the clusters")
 	serverCmd.PersistentFlags().String("bind-ips", "", "The Bind servers that should be passed in the VPC DHCP options")
 
-	serverCmd.MarkFlagRequired("sso-user-email")
-	serverCmd.MarkFlagRequired("sso-first-name")
-	serverCmd.MarkFlagRequired("sso-last-name")
-	serverCmd.MarkFlagRequired("managed-ou")
-	serverCmd.MarkFlagRequired("control-tower-role")
-	serverCmd.MarkFlagRequired("control-tower-account")
-	serverCmd.MarkFlagRequired("resource-share-id")
-	serverCmd.MarkFlagRequired("core-account")
-	serverCmd.MarkFlagRequired("state-bucket")
-	serverCmd.MarkFlagRequired("tgw-id")
-	serverCmd.MarkFlagRequired("teleport-cidr")
-	serverCmd.MarkFlagRequired("tgw-routes")
-	serverCmd.MarkFlagRequired("cnc-cidrs")
-	serverCmd.MarkFlagRequired("bind-ips")
+	serverCmd.MarkFlagRequired("sso-user-email")        //nolint
+	serverCmd.MarkFlagRequired("sso-first-name")        //nolint
+	serverCmd.MarkFlagRequired("sso-last-name")         //nolint
+	serverCmd.MarkFlagRequired("managed-ou")            //nolint
+	serverCmd.MarkFlagRequired("control-tower-role")    //nolint
+	serverCmd.MarkFlagRequired("control-tower-account") //nolint
+	serverCmd.MarkFlagRequired("resource-share-id")     //nolint
+	serverCmd.MarkFlagRequired("core-account")          //nolint
+	serverCmd.MarkFlagRequired("state-bucket")          //nolint
+	serverCmd.MarkFlagRequired("tgw-id")                //nolint
+	serverCmd.MarkFlagRequired("teleport-cidr")         //nolint
+	serverCmd.MarkFlagRequired("tgw-routes")            //nolint
+	serverCmd.MarkFlagRequired("cnc-cidrs")             //nolint
+	serverCmd.MarkFlagRequired("bind-ips")              //nolint
 
 	// Supervisors
 	serverCmd.PersistentFlags().Int("poll", 30, "The interval in seconds to poll for background work.")
@@ -245,60 +243,14 @@ var serverCmd = &cobra.Command{
 
 		ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 		defer cancel()
-		srv.Shutdown(ctx)
+		srv.Shutdown(ctx) //nolint
 
 		return nil
 	},
-}
-
-func checkRequirements(awsConfig *sdkAWS.Config, s3StateStore string) error {
-	utilities := []string{
-		"terraform",
-	}
-
-	for _, requiredUtility := range utilities {
-		_, err := exec.LookPath(requiredUtility)
-		if err != nil {
-			return errors.Errorf("failed to find %s on the PATH", requiredUtility)
-		}
-	}
-
-	client := toolsAWS.NewAWSClientWithConfig(awsConfig, logger)
-	_, err := client.GetCloudEnvironmentName()
-	if err != nil {
-		return errors.Wrap(err, "failed to establish a connection with AWS")
-	}
-
-	return nil
 }
 
 // deprecationWarnings performs all checks for deprecated settings and warns if
 // any are found.
 func deprecationWarnings(logger logrus.FieldLogger, cmd *cobra.Command) {
 	// Add deprecation logic here.
-}
-
-// getHumanReadableID  represents  a  best  effort  attempt  to  retrieve  an
-// identifiable  human to  associate with  a given  provisioner. Since
-// this is for dev workflows, any  error causes it to merely return a
-// generic string.
-func getHumanReadableID() string {
-	envVar := os.Getenv("CLOUD_SERVER_OWNER")
-	if envVar != "" {
-		return envVar
-	}
-
-	cmd := exec.Command("git", "config",
-		"--get", "user.email")
-
-	output, err := cmd.Output()
-	if err != nil {
-		logger.Debugf("Couldn't determine username of developer with which to tag infrastructure due to error: %s", err.Error())
-		if len(output) != 0 {
-			logger.Debugf("Command output was: %s", string(output))
-		}
-		return "SRETeam"
-	}
-
-	return strings.TrimSpace(string(output))
 }

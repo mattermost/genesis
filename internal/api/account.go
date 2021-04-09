@@ -131,7 +131,7 @@ func handleCreateAccount(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Logger.WithError(err).Error("Unable to process and send webhooks")
 	}
 
-	c.Supervisor.Do()
+	c.Supervisor.Do() //nolint
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusAccepted)
@@ -184,7 +184,7 @@ func handleRetryCreateAccount(c *Context, w http.ResponseWriter, r *http.Request
 
 	// Notify even if we didn't make changes, to expedite even the no-op operations above.
 	unlockOnce()
-	c.Supervisor.Do()
+	c.Supervisor.Do() //nolint
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusAccepted)
@@ -280,7 +280,7 @@ func handleProvisionAccount(c *Context, w http.ResponseWriter, r *http.Request) 
 
 	// Notify even if we didn't make changes, to expedite even the no-op operations above.
 	unlockOnce()
-	c.Supervisor.Do()
+	c.Supervisor.Do() //nolint
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusAccepted)
@@ -338,7 +338,7 @@ func handleDeleteAccount(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	unlockOnce()
-	c.Supervisor.Do()
+	c.Supervisor.Do() //nolint
 
 	w.WriteHeader(http.StatusAccepted)
 }

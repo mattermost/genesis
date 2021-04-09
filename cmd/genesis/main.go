@@ -15,14 +15,14 @@ var rootCmd = &cobra.Command{
 	Use:   "genesis",
 	Short: "Genesis is a tool to provision, manage, and monitor Cloud Enterprise resources.",
 	Run: func(cmd *cobra.Command, args []string) {
-		serverCmd.RunE(cmd, args)
+		serverCmd.RunE(cmd, args) //nolint
 	},
 	// SilenceErrors allows us to explicitly log the error returned from rootCmd below.
 	SilenceErrors: true,
 }
 
 func init() {
-	rootCmd.MarkFlagRequired("database")
+	rootCmd.MarkFlagRequired("database") //nolint
 
 	rootCmd.AddCommand(serverCmd)
 	rootCmd.AddCommand(accountCmd)

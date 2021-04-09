@@ -7,6 +7,7 @@ require (
 	github.com/aws/aws-sdk-go v1.37.5
 	github.com/blang/semver v3.5.1+incompatible
 	github.com/golang/mock v1.4.4
+	github.com/golangci/golangci-lint v1.39.1-0.20210406231305-1fb67fe448da // indirect
 	github.com/google/uuid v1.1.1 // indirect
 	github.com/gorilla/mux v1.8.0
 	github.com/jmoiron/sqlx v1.3.1
@@ -20,7 +21,8 @@ require (
 	github.com/sirupsen/logrus v1.8.1
 	github.com/spf13/cobra v1.1.3
 	github.com/stretchr/testify v1.7.0
-	google.golang.org/appengine v1.6.1
+	golang.org/x/lint v0.0.0-20201208152925-83fdc39ff7b5 // indirect
+	google.golang.org/appengine v1.6.6
 	gopkg.in/check.v1 v1.0.0-20200227125254-8fa46927fb4f // indirect
 	gopkg.in/yaml.v3 v3.0.0-20200615113413-eeeca48fe776 // indirect
 )

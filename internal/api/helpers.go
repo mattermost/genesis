@@ -16,15 +16,6 @@ func logSecurityLockConflict(resourceType string, logger logrus.FieldLogger) {
 	logger.WithField("api-security-lock-conflict", resourceType).Warn("API security lock conflict detected")
 }
 
-func parseString(u *url.URL, name string, defaultValue string) string {
-	valueStr := u.Query().Get(name)
-	if valueStr == "" {
-		return defaultValue
-	}
-
-	return valueStr
-}
-
 func parseInt(u *url.URL, name string, defaultValue int) (int, error) {
 	valueStr := u.Query().Get(name)
 	if valueStr == "" {
@@ -75,18 +66,4 @@ func parsePaging(u *url.URL) (int, int, bool, bool, error) {
 	}
 
 	return page, perPage, includeDeleted, freeSubnets, nil
-}
-
-func parseGroupConfig(u *url.URL) (bool, bool, error) {
-	includeGroupConfig, err := parseBool(u, "include_group_config", true)
-	if err != nil {
-		return false, false, err
-	}
-
-	includeGroupConfigOverrides, err := parseBool(u, "include_group_config_overrides", true)
-	if err != nil {
-		return false, false, err
-	}
-
-	return includeGroupConfig, includeGroupConfigOverrides, nil
 }

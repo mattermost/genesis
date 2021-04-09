@@ -43,7 +43,7 @@ func (l *accountLock) Unlock() {
 	unlocked, err := l.store.UnlockAccount(l.accountID, l.lockerID, false)
 	if err != nil {
 		l.logger.WithError(err).Error("failed to unlock account")
-	} else if unlocked != true {
+	} else if !unlocked {
 		l.logger.Error("failed to release lock for account")
 	}
 }

@@ -1,3 +1,7 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+//
+
 package terraform
 
 import (
@@ -5,15 +9,6 @@ import (
 
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
-)
-
-const (
-	// backendFilename is the backend terraform base configuration for S3 remote
-	// state.
-	backendFilename = "backend.tf"
-	// remoteStateDirectory is the directory inside of the S3 bucket that will
-	// contain all of the terraform remote state.
-	remoteStateDirectory = "terraform"
 )
 
 // Cmd is the terraform command to execute.
