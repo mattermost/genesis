@@ -108,14 +108,12 @@ jobs:
         CI_APPLICATION_REPOSITORY: mattermost/genesis
         CLAIR_DB_CONNECTION_STRING: "postgresql://postgres:password@localhost:5432/postgres?sslmode=disable&statement_timeout=60000"
         DOCKERFILE_PATH: "build/Dockerfile"
+        CI_APPLICATION_TAG: "${CIRCLE_SHA1:0:7}"
+        DOCKER_USER: $DOCKER_USERNAME
     - image: arminc/clair-db:latest
     steps:
     - checkout
-    - run:
-        environment:
-          CI_APPLICATION_TAG: "${CIRCLE_SHA1:0:7}"
-          DOCKER_USER: $DOCKER_USERNAME
-        command: /analyzer run
+    - run: /analyzer run
     - store_artifacts:
         path: gl-container-scanning-report.json
         destination: security-scan
