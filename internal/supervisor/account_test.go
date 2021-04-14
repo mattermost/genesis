@@ -83,15 +83,11 @@ func (s *mockAccountStore) DeleteAccount(AccountID string) error {
 	return nil
 }
 
-func (s *mockAccountStore) GetRandomAvailableSubnet() (*model.Subnet, error) {
+func (s *mockAccountStore) ClaimSubnet(cidr string, accountID string) (*model.Subnet, error) {
 	return nil, nil
 }
 
-func (s *mockAccountStore) GetSubnetByCIDR(cidr string) (*model.Subnet, error) {
-	return nil, nil
-}
-
-func (s *mockAccountStore) UpdateSubnet(subnet *model.Subnet) error {
+func (s *mockAccountStore) SubnetCleanup(cidr string) error {
 	return nil
 }
 

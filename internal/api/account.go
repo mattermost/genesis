@@ -240,31 +240,18 @@ func handleProvisionAccount(c *Context, w http.ResponseWriter, r *http.Request) 
 
 		if account.AccountMetadata.Subnet == "" {
 			var subnet *model.Subnet
-			if provisionAccountRequest.Subnet != "" {
-				subnet, err = c.Store.GetSubnetByCIDR(provisionAccountRequest.Subnet)
-				if err != nil {
-					c.Logger.WithError(err).Error("failed to get the passed CIDR from the subnet pool store")
-					w.WriteHeader(http.StatusInternalServerError)
-					return
-				}
-				account.AccountMetadata.Subnet = provisionAccountRequest.Subnet
-			} else {
-				c.Logger.Info("Allocating random subnet")
-				subnet, err = c.Store.GetRandomAvailableSubnet()
-				if err != nil {
-					c.Logger.WithError(err).Error("failed to get a random available subnet")
-					w.WriteHeader(http.StatusInternalServerError)
-					return
-				}
-				c.Logger.Infof("Subnet %s allocated for VPC provisioning", subnet.CIDR)
-				account.AccountMetadata.Subnet = subnet.CIDR
-			}
-			subnet.AccountID = account.ProviderMetadataAWS.AWSAccountID
-			if err := c.Store.UpdateSubnet(subnet); err != nil {
-				c.Logger.WithError(err).Error("failed to update subnet with account ID")
+
+			subnet, err := c.Store.ClaimSubnet(provisionAccountRequest.Subnet, account.ProviderMetadataAWS.AWSAccountID)
+			if err != nil {
+				c.Logger.WithError(err).Error("failed to claim subnet")
 				w.WriteHeader(http.StatusInternalServerError)
-				return
 			}
+
+			account.AccountMetadata.Subnet = subnet.CIDR
+
+		} else if account.AccountMetadata.Subnet != "" && provisionAccountRequest.Subnet != "" {
+			c.Logger.Error("There is a subnet already allocated to the account")
+			w.WriteHeader(http.StatusBadRequest)
 		}
 
 		if err := c.Store.UpdateAccount(account); err != nil {
@@ -274,7 +261,7 @@ func handleProvisionAccount(c *Context, w http.ResponseWriter, r *http.Request) 
 		}
 
 		if err := webhook.SendToAllWebhooks(c.Store, webhookPayload, c.Logger.WithField("webhookEvent", webhookPayload.NewState)); err != nil {
-			c.Logger.WithError(err).Error("Unable to process and send webhooks")
+			c.Logger.WithError(err).Error("unable to process and send webhooks")
 		}
 	}
 

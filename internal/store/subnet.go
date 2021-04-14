@@ -43,33 +43,103 @@ func (rc *rawSubnets) toSubnets() ([]*model.Subnet, error) {
 	return subnets, nil
 }
 
-// GetSubnet fetches a random available subnet.
-func (sqlStore *SQLStore) GetRandomAvailableSubnet() (*model.Subnet, error) {
+// getRandomAvailableSubnet fetches a random available subnet.
+func (sqlStore *SQLStore) getRandomAvailableSubnet(db dbInterface) (*model.Subnet, error) {
 	filter := &model.SubnetFilter{
 		Page:    1,
 		PerPage: 1,
 		Free:    true,
 	}
 
-	subnet, err := sqlStore.GetSubnets(filter)
+	subnets, err := sqlStore.getSubnets(db, filter)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to query for free subnet")
 	}
+	if subnets[0] == nil {
+		return nil, errors.Errorf("Returning nil when querying for free subnets")
+	}
 
-	return subnet[0], nil
+	return subnets[0], nil
 }
 
-// GetSubnet fetches a subnet by its provided CIDR range.
-func (sqlStore *SQLStore) GetSubnetByCIDR(cidr string) (*model.Subnet, error) {
+// getSubnetByCIDR fetches a subnet by its provided CIDR range.
+func (sqlStore *SQLStore) getSubnetByCIDR(db dbInterface, cidr string) (*model.Subnet, error) {
 	var rawSubnet rawSubnet
-	err := sqlStore.getBuilder(sqlStore.db, &rawSubnet, subnetSelect.Where("CIDR = ?", cidr))
+	err := sqlStore.getBuilder(db, &rawSubnet, subnetSelect.Where("CIDR = ?", cidr))
 	if err == sql.ErrNoRows {
 		return nil, nil
 	} else if err != nil {
 		return nil, errors.Wrap(err, "failed to get subnet by range")
 	}
 
+	if rawSubnet.Subnet == nil {
+		return nil, errors.Errorf("Returning nil when getting subnet by CIDR")
+	}
+
 	return rawSubnet.toSubnet()
+}
+
+// ClaimSubnet claims a subnet and associates it with an account. If an empty subnet is passed a random one will be allocated.
+func (sqlStore *SQLStore) ClaimSubnet(cidr string, accountID string) (*model.Subnet, error) {
+	var subnet *model.Subnet
+	tx, err := sqlStore.beginCustomTransaction(sqlStore.db, &sql.TxOptions{Isolation: sql.LevelRepeatableRead})
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to begin the transaction")
+	}
+	defer tx.RollbackUnlessCommitted()
+
+	if cidr != "" {
+		subnet, err = sqlStore.getSubnetByCIDR(tx, cidr)
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to get subnet by cidr")
+		}
+	} else {
+		subnet, err = sqlStore.getRandomAvailableSubnet(tx)
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to get random available subnet")
+		}
+	}
+	if subnet.AccountID != "" {
+		return nil, errors.Errorf("The claimed subnet has already an assigned account")
+	} else {
+		subnet.AccountID = accountID
+	}
+
+	if err = sqlStore.updateSubnet(tx, subnet); err != nil {
+		return nil, errors.Wrap(err, "failed to update subnet with account ID")
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to commit the transaction")
+	}
+
+	return subnet, nil
+}
+
+// SubnetCleanup is cleaning up a subnet making it available for claim.
+func (sqlStore *SQLStore) SubnetCleanup(cidr string) error {
+	tx, err := sqlStore.beginCustomTransaction(sqlStore.db, &sql.TxOptions{Isolation: sql.LevelRepeatableRead})
+	if err != nil {
+		return errors.Wrap(err, "failed to begin the transaction")
+	}
+	defer tx.RollbackUnlessCommitted()
+
+	subnet, err := sqlStore.getSubnetByCIDR(tx, cidr)
+	if err != nil {
+		return errors.Wrap(err, "failed to get subnet by cidr")
+	}
+
+	subnet.AccountID = ""
+	if err = sqlStore.updateSubnet(tx, subnet); err != nil {
+		return errors.Wrap(err, "failed to update subnet with empty account id")
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		return errors.Wrap(err, "failed to commit the transaction")
+	}
+	return nil
 }
 
 // GetSubnet fetches the given subnet by subnet range.
@@ -87,6 +157,11 @@ func (sqlStore *SQLStore) GetSubnet(id string) (*model.Subnet, error) {
 
 // GetSubnets fetches the given page of added subnets. The first page is 0.
 func (sqlStore *SQLStore) GetSubnets(filter *model.SubnetFilter) ([]*model.Subnet, error) {
+	return sqlStore.getSubnets(sqlStore.db, filter)
+}
+
+// GetSubnets fetches the given page of added subnets. The first page is 0.
+func (sqlStore *SQLStore) getSubnets(db dbInterface, filter *model.SubnetFilter) ([]*model.Subnet, error) {
 	builder := subnetSelect.
 		OrderBy("CreateAt ASC")
 	builder = sqlStore.applySubnetsFilter(builder, filter)
@@ -96,7 +171,7 @@ func (sqlStore *SQLStore) GetSubnets(filter *model.SubnetFilter) ([]*model.Subne
 	}
 
 	var rawSubnets rawSubnets
-	err := sqlStore.selectBuilder(sqlStore.db, &rawSubnets, builder)
+	err := sqlStore.selectBuilder(db, &rawSubnets, builder)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to query for subnets")
 	}
@@ -142,7 +217,11 @@ func (sqlStore *SQLStore) addSubnets(execer execer, subnets *[]model.Subnet) err
 
 // UpdateSubnet updates the given subnet in the database.
 func (sqlStore *SQLStore) UpdateSubnet(subnet *model.Subnet) error {
-	_, err := sqlStore.execBuilder(sqlStore.db, sq.
+	return sqlStore.updateSubnet(sqlStore.db, subnet)
+}
+
+func (sqlStore *SQLStore) updateSubnet(db dbInterface, subnet *model.Subnet) error {
+	_, err := sqlStore.execBuilder(db, sq.
 		Update("SubnetPool").
 		SetMap(map[string]interface{}{
 			"AccountID": subnet.AccountID,

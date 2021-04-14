@@ -112,8 +112,7 @@ func provisionAccount(provisioner *GenProvisioner, account *model.Account, logge
 		return errors.Wrap(err, "failed to initiate Terraform")
 	}
 
-	err = tf.Init(account.ID)
-	if err != nil {
+	if err = tf.Init(account.ID); err != nil {
 		return errors.Wrap(err, "failed to run Terraform init")
 	}
 

@@ -27,6 +27,14 @@ type SQLStore struct {
 	logger logrus.FieldLogger
 }
 
+// dbInterface is an interface describing a resource that can execute read and write queries.
+//
+// It allows the use of *sqlx.Db and *sqlx.Tx.
+type dbInterface interface {
+	execer
+	queryer
+}
+
 // New constructs a new instance of SQLStore.
 func New(dsn string, logger logrus.FieldLogger) (*SQLStore, error) {
 	if strings.Contains(dsn, "file:") {

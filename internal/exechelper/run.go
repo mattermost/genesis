@@ -29,9 +29,9 @@ func bufferAndLog(reader io.Reader, buffer *bytes.Buffer, logger log.FieldLogger
 		text := scanner.Text()
 		if outputLogger == nil {
 			logger.Info(scanner.Text())
-		} else {
-			outputLogger(text, logger)
+			continue
 		}
+		outputLogger(text, logger)
 	}
 	if err := scanner.Err(); err != nil {
 		return err
