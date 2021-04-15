@@ -113,6 +113,17 @@ func handleCreateAccount(c *Context, w http.ResponseWriter, r *http.Request) {
 		State:           model.AccountStateCreationRequested,
 	}
 
+	if createAccountRequest.Provision {
+		var subnet *model.Subnet
+		subnet, err := c.Store.ClaimSubnet(createAccountRequest.Subnet, account.ProviderMetadataAWS.AWSAccountID)
+		if err != nil {
+			c.Logger.WithError(err).Error("failed to claim subnet")
+			w.WriteHeader(http.StatusInternalServerError)
+		}
+
+		account.AccountMetadata.Subnet = subnet.CIDR
+	}
+
 	if err = c.Store.CreateAccount(&account); err != nil {
 		c.Logger.WithError(err).Error("failed to create account")
 		w.WriteHeader(http.StatusInternalServerError)

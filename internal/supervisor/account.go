@@ -184,16 +184,6 @@ func (s *AccountSupervisor) createAccount(account *model.Account, logger log.Fie
 
 	logger.Info("Finished creating account")
 	if account.AccountMetadata.Provision {
-		if account.AccountMetadata.Subnet == "" {
-			logger.Info("Allocating random subnet")
-
-			subnet, err := s.store.ClaimSubnet("", account.ProviderMetadataAWS.AWSAccountID)
-			if err != nil {
-				logger.WithError(err).Error("failed to claim subnet")
-				return model.AccountStateProvisioningFailed
-			}
-			account.AccountMetadata.Subnet = subnet.CIDR
-		}
 		return s.provisionAccount(account, logger)
 	}
 	return s.refreshAccountMetadata(account, logger)

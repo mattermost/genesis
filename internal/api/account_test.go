@@ -85,6 +85,12 @@ func TestAccounts(t *testing.T) {
 		})
 	})
 	t.Run("accounts", func(t *testing.T) {
+		_, err := client.AddParentSubnet(&model.AddParentSubnetRequest{
+			CIDR:       "10.80.0.0/12",
+			SplitRange: 24,
+		})
+		require.NoError(t, err)
+
 		account1, err := client.CreateAccount(&model.CreateAccountRequest{
 			Provider:                model.ProviderAWS,
 			ServiceCatalogProductID: "service-catalog-id",
@@ -283,6 +289,12 @@ func TestCreateAccount(t *testing.T) {
 	defer ts.Close()
 
 	client := model.NewClient(ts.URL)
+
+	_, err := client.AddParentSubnet(&model.AddParentSubnetRequest{
+		CIDR:       "10.80.0.0/12",
+		SplitRange: 24,
+	})
+	require.NoError(t, err)
 
 	t.Run("invalid payload", func(t *testing.T) {
 		resp, err := http.Post(fmt.Sprintf("%s/api/accounts", ts.URL), "application/json", bytes.NewReader([]byte("invalid")))
