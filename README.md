@@ -81,7 +81,7 @@ Run the server with all required flags. See list below:
 genesis server
 --control-tower-account <the account id of the account tha manages control tower>
 --control-tower-role <the iam role that will be used in the control tower account>
---managed-ou <the name of the OU used for new accounts>
+--managed-ou <the name of the organizational unit used for new accounts>
 --sso-first-name <the first name of the SSO user>
 --sso-last-name <the last name of the SSO user>
 --sso-user-email <the email of the SSO user>
