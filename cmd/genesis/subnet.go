@@ -1,5 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
+//
 
 package main
 
@@ -18,7 +19,7 @@ func init() {
 	subnetCmd.PersistentFlags().Bool("dry-run", false, "When set to true, only print the API request without sending it.")
 
 	subnetGetCmd.Flags().String("subnet", "", "The subnet range to get from the subnet pool.")
-	subnetGetCmd.MarkFlagRequired("subnet")
+	subnetGetCmd.MarkFlagRequired("subnet") //nolint
 
 	subnetListCmd.Flags().Int("page", 0, "The page of subnets to fetch, starting at 0.")
 	subnetListCmd.Flags().Int("per-page", 100, "The number of subnets to fetch per page.")
@@ -63,15 +64,14 @@ var subnetListCmd = &cobra.Command{
 		if outputToTable {
 			table := tablewriter.NewWriter(os.Stdout)
 			table.SetAlignment(tablewriter.ALIGN_LEFT)
-			table.SetHeader([]string{"SUBNET", "CIDR", "ACCOUNT ID", "VPC ID", "PARENT SUBNET"})
+			table.SetHeader([]string{"SUBNET", "CIDR", "ACCOUNT ID", "PARENT SUBNET"})
 
 			for _, subnet := range subnets {
 				table.Append([]string{
 					subnet.ID,
 					subnet.CIDR,
 					subnet.AccountID,
-					subnet.VPCID,
-					subnet.ParentSubnetID,
+					subnet.ParentSubnet,
 				})
 			}
 			table.Render()

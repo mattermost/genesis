@@ -16,7 +16,7 @@ func init() {
 	securityCmd.PersistentFlags().String("server", defaultLocalServerAPI, "The genesis server whose API will be queried.")
 
 	securityAccountCmd.PersistentFlags().String("account", "", "The id of the account.")
-	securityAccountCmd.MarkPersistentFlagRequired("account")
+	securityAccountCmd.MarkPersistentFlagRequired("account") //nolint
 
 	securityCmd.AddCommand(securityAccountCmd)
 	securityAccountCmd.AddCommand(securityAccountLockAPICmd)

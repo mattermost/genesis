@@ -24,13 +24,42 @@ type Account struct {
 	LockAcquiredAt      int64
 }
 
-// Clone returns a deep copy the account.
-func (a *Account) Clone() *Account {
-	var clone Account
-	data, _ := json.Marshal(a)
-	json.Unmarshal(data, &clone)
+// AccountCreation stores information neeeded for account creation.
+type AccountCreation struct {
+	SSOUserEmail          string
+	SSOFirstName          string
+	SSOLastName           string
+	ManagedOU             string
+	ControlTowerRole      string
+	ControlTowerAccountID string
+}
 
-	return &clone
+// AccountProvision stores information neeeded for account provision.
+type AccountProvision struct {
+	StateBucket          string
+	TransitGatewayID     string
+	Environment          string
+	TransitGatewayRoutes string
+	TeleportCIDR         string
+	CncCIDRs             string
+	BindServerIPs        string
+	ResourceShareID      string
+	CoreAccountID        string
+}
+
+// Clone returns a deep copy the account.
+func (a *Account) Clone() (*Account, error) {
+	var clone Account
+	data, err := json.Marshal(a)
+	if err != nil {
+		return nil, err
+	}
+
+	if err = json.Unmarshal(data, &clone); err != nil {
+		return nil, err
+	}
+
+	return &clone, nil
 }
 
 // AccountFromReader decodes a json-encoded account from the given io.Reader.

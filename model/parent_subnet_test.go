@@ -17,7 +17,8 @@ func TestParentSubnetClone(t *testing.T) {
 		SplitRange: 24,
 	}
 
-	clone := parentSubnet.Clone()
+	clone, err := parentSubnet.Clone()
+	require.NoError(t, err)
 	require.Equal(t, parentSubnet, clone)
 }
 

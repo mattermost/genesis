@@ -19,11 +19,11 @@ func init() {
 
 	webhookCreateCmd.Flags().String("owner", "", "An opaque identifier describing the owner of the webhook.")
 	webhookCreateCmd.Flags().String("url", "", "The callback URL of the webhook.")
-	webhookCreateCmd.MarkFlagRequired("owner")
-	webhookCreateCmd.MarkFlagRequired("url")
+	webhookCreateCmd.MarkFlagRequired("owner") //nolint
+	webhookCreateCmd.MarkFlagRequired("url")   //nolint
 
 	webhookGetCmd.Flags().String("webhook", "", "The id of the webhook to be fetched.")
-	webhookGetCmd.MarkFlagRequired("webhook")
+	webhookGetCmd.MarkFlagRequired("webhook") //nolint
 
 	webhookListCmd.Flags().String("owner", "", "The owner by which to filter webhooks.")
 	webhookListCmd.Flags().Int("page", 0, "The page of webhooks to fetch, starting at 0.")
@@ -32,7 +32,7 @@ func init() {
 	webhookListCmd.Flags().Bool("table", false, "Whether to display the returned webhook list in a table or not")
 
 	webhookDeleteCmd.Flags().String("webhook", "", "The id of the webhook to be deleted.")
-	webhookDeleteCmd.MarkFlagRequired("webhook")
+	webhookDeleteCmd.MarkFlagRequired("webhook") //nolint
 
 	webhookCmd.AddCommand(webhookCreateCmd)
 	webhookCmd.AddCommand(webhookGetCmd)
@@ -90,7 +90,11 @@ var webhookGetCmd = &cobra.Command{
 
 		client := model.NewClient(serverAddress)
 
-		webhookID, _ := command.Flags().GetString("webhook")
+		webhookID, err := command.Flags().GetString("webhook")
+		if err != nil {
+			return errors.Wrap(err, "failed to read webhookid")
+		}
+
 		webhook, err := client.GetWebhook(webhookID)
 		if err != nil {
 			return errors.Wrap(err, "failed to query webhook")
@@ -169,9 +173,12 @@ var webhookDeleteCmd = &cobra.Command{
 
 		client := model.NewClient(serverAddress)
 
-		webhookID, _ := command.Flags().GetString("webhook")
+		webhookID, err := command.Flags().GetString("webhook")
+		if err != nil {
+			return errors.Wrap(err, "failed to read webhookid")
+		}
 
-		err := client.DeleteWebhook(webhookID)
+		err = client.DeleteWebhook(webhookID)
 		if err != nil {
 			return errors.Wrap(err, "failed to delete webhook")
 		}

@@ -83,23 +83,6 @@ func (c *Client) doPost(u string, request interface{}) (*http.Response, error) {
 	return c.httpClient.Do(req)
 }
 
-func (c *Client) doPut(u string, request interface{}) (*http.Response, error) {
-	requestBytes, err := json.Marshal(request)
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to marshal request")
-	}
-
-	req, err := http.NewRequest(http.MethodPut, u, bytes.NewReader(requestBytes))
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to create http request")
-	}
-	for k, v := range c.headers {
-		req.Header.Add(k, v)
-	}
-
-	return c.httpClient.Do(req)
-}
-
 func (c *Client) doDelete(u string) (*http.Response, error) {
 	req, err := http.NewRequest(http.MethodDelete, u, nil)
 	if err != nil {

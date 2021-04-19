@@ -96,3 +96,31 @@ func (mr *MockAWSMockRecorder) GetAccountID() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAccountID", reflect.TypeOf((*MockAWS)(nil).GetAccountID))
 }
+
+// AssociateTGWShare mocks base method
+func (m *MockAWS) AssociateTGWShare(resourceShareARN, principalID string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "AssociateTGWShare", resourceShareARN, principalID)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// AssociateTGWShare indicates an expected call of AssociateTGWShare
+func (mr *MockAWSMockRecorder) AssociateTGWShare(resourceShareARN, principalID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AssociateTGWShare", reflect.TypeOf((*MockAWS)(nil).AssociateTGWShare), resourceShareARN, principalID)
+}
+
+// DisassociateTGWShare mocks base method
+func (m *MockAWS) DisassociateTGWShare(resourceShareARN, principalID string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DisassociateTGWShare", resourceShareARN, principalID)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DisassociateTGWShare indicates an expected call of DisassociateTGWShare
+func (mr *MockAWSMockRecorder) DisassociateTGWShare(resourceShareARN, principalID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DisassociateTGWShare", reflect.TypeOf((*MockAWS)(nil).DisassociateTGWShare), resourceShareARN, principalID)
+}

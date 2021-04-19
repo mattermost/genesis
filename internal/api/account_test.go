@@ -88,20 +88,19 @@ func TestAccounts(t *testing.T) {
 		account1, err := client.CreateAccount(&model.CreateAccountRequest{
 			Provider:                model.ProviderAWS,
 			ServiceCatalogProductID: "service-catalog-id",
-			Provision:               true,
+			Provision:               false,
 		})
 		require.NoError(t, err)
 		require.NotNil(t, account1)
 		require.Equal(t, model.ProviderAWS, account1.Provider)
 
 		actualAccount1, err := client.GetAccount(account1.ID)
-		logger.Info(actualAccount1.ProviderMetadataAWS)
 		require.NoError(t, err)
 		require.Equal(t, account1.ID, actualAccount1.ID)
 		require.Equal(t, model.ProviderAWS, actualAccount1.Provider)
 		require.Equal(t, model.AccountStateCreationRequested, actualAccount1.State)
 		require.Equal(t, "service-catalog-id", actualAccount1.ProviderMetadataAWS.ServiceCatalogProductID)
-		require.Equal(t, true, actualAccount1.AccountMetadata.Provision)
+		require.Equal(t, false, actualAccount1.AccountMetadata.Provision)
 
 		time.Sleep(1 * time.Millisecond)
 
@@ -318,13 +317,13 @@ func TestCreateAccount(t *testing.T) {
 		account, err := client.CreateAccount(&model.CreateAccountRequest{
 			Provider:                model.ProviderAWS,
 			ServiceCatalogProductID: "service-catalog-id",
-			Provision:               true,
+			Provision:               false,
 		})
 		require.NoError(t, err)
 		require.Equal(t, model.ProviderAWS, account.Provider)
 		require.Equal(t, model.AccountStateCreationRequested, account.State)
 		require.Equal(t, "service-catalog-id", account.ProviderMetadataAWS.ServiceCatalogProductID)
-		require.Equal(t, true, account.AccountMetadata.Provision)
+		require.Equal(t, false, account.AccountMetadata.Provision)
 	})
 }
 
@@ -432,6 +431,7 @@ func TestProvisionAccount(t *testing.T) {
 		Provider:                model.ProviderAWS,
 		ServiceCatalogProductID: "service-catalog-id",
 		Provision:               false,
+		Subnet:                  "10.0.0.0/24",
 	})
 	require.NoError(t, err)
 

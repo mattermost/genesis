@@ -40,7 +40,9 @@ func handleGetParentSubnet(c *Context, w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	if &parentSubnet == nil {
+
+	emptySub := model.ParentSubnet{}
+	if parentSubnet == emptySub {
 		w.WriteHeader(http.StatusNotFound)
 		return
 	}

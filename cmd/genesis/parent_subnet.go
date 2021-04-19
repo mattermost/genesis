@@ -1,5 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
+//
 
 package main
 
@@ -19,10 +20,10 @@ func init() {
 
 	parentSubnetAddCmd.Flags().String("cidr", "", "The subnet that will be added in the parent subnet pool.")
 	parentSubnetAddCmd.Flags().Int("split-range", 24, "The range that the passed subnet range will be split into.")
-	parentSubnetAddCmd.MarkFlagRequired("cidr")
+	parentSubnetAddCmd.MarkFlagRequired("cidr") //nolint
 
 	parentSubnetGetCmd.Flags().String("subnet", "", "The subnet id to get from the parent subnets.")
-	parentSubnetGetCmd.MarkFlagRequired("subnet")
+	parentSubnetGetCmd.MarkFlagRequired("subnet") //nolint
 
 	parentSubnetListCmd.Flags().Int("page", 0, "The page of subnets to fetch, starting at 0.")
 	parentSubnetListCmd.Flags().Int("per-page", 100, "The number of parent subnets to fetch per page.")

@@ -27,6 +27,14 @@ type SQLStore struct {
 	logger logrus.FieldLogger
 }
 
+// dbInterface is an interface describing a resource that can execute read and write queries.
+//
+// It allows the use of *sqlx.Db and *sqlx.Tx.
+type dbInterface interface {
+	execer
+	queryer
+}
+
 // New constructs a new instance of SQLStore.
 func New(dsn string, logger logrus.FieldLogger) (*SQLStore, error) {
 	if strings.Contains(dsn, "file:") {
@@ -72,7 +80,7 @@ func New(dsn string, logger logrus.FieldLogger) (*SQLStore, error) {
 		if usePgTemp {
 			// Force the use of the current session's temporary-table schema,
 			// simplifying cleanup for unit tests configured to use same.
-			db.Exec("SET search_path TO pg_temp")
+			db.Exec("SET search_path TO pg_temp") //nolint
 		}
 
 		// Leave the default mapper as strings.ToLower.
@@ -171,14 +179,6 @@ func (sqlStore *SQLStore) execBuilder(e execer, b builder) (sql.Result, error) {
 	}
 
 	return sqlStore.exec(e, sql, args...)
-}
-
-// dbInterface is an interface describing a resource that can execute read and write queries.
-//
-// It allows the use of *sqlx.Db and *sqlx.Tx.
-type dbInterface interface {
-	execer
-	queryer
 }
 
 type transactionStarter interface {

@@ -17,11 +17,11 @@ func TestCurrentVersion(t *testing.T) {
 	sqlStore := makeUnmigratedTestSQLStore(t, logger)
 
 	currentVersion, err := sqlStore.GetCurrentVersion()
-	require.NoError(t, err)
+	require.Error(t, err)
 	require.Equal(t, semver.Version{}, currentVersion)
 
 	currentVersion, err = sqlStore.getCurrentVersion(sqlStore.db)
-	require.NoError(t, err)
+	require.Error(t, err)
 	require.Equal(t, semver.Version{}, currentVersion)
 
 	err = sqlStore.Migrate()

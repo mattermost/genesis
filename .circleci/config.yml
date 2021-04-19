@@ -70,11 +70,8 @@ jobs:
     executor:
       name: default
     steps:
-    - run:
-        name: Waiting for Postgres to be ready
-        command: |
-          ./scripts/verify-postgres.sh
     - checkout
+    - run: ./scripts/verify-postgres.sh
     - *restore_cache
     - run: make unittest
     - *save_cache
@@ -114,11 +111,10 @@ jobs:
     - image: arminc/clair-db:latest
     steps:
     - checkout
-    - run:
-        environment:
-          CI_APPLICATION_TAG: "${CIRCLE_SHA1:0:7}"
-          DOCKER_USER: $DOCKER_USERNAME
-        command: /analyzer run
+    - run: |
+        export CI_APPLICATION_TAG="${CIRCLE_SHA1:0:7}"
+        export DOCKER_USER=$DOCKER_USERNAME
+        /analyzer run
     - store_artifacts:
         path: gl-container-scanning-report.json
         destination: security-scan

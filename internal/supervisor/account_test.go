@@ -40,6 +40,13 @@ func (a *mockAWS) GetAccountID() (string, error) {
 	return "", nil
 }
 
+func (a *mockAWS) AssociateTGWShare(resourceShareARN, principalID string) error {
+	return nil
+}
+func (a *mockAWS) DisassociateTGWShare(resourceShareARN, principalID string) error {
+	return nil
+}
+
 func (a *mockAWS) GetCloudEnvironmentName() (string, error) {
 	return "", nil
 }
@@ -73,6 +80,14 @@ func (s *mockAccountStore) UnlockAccount(AccountID string, lockerID string, forc
 }
 
 func (s *mockAccountStore) DeleteAccount(AccountID string) error {
+	return nil
+}
+
+func (s *mockAccountStore) ClaimSubnet(cidr string, accountID string) (*model.Subnet, error) {
+	return nil, nil
+}
+
+func (s *mockAccountStore) SubnetCleanup(cidr string) error {
 	return nil
 }
 
@@ -127,7 +142,7 @@ func TestAccountSupervisorDo(t *testing.T) {
 		require.NoError(t, err)
 
 		<-mockStore.UnlockChan
-		require.Equal(t, 2, mockStore.UpdateAccountCalls)
+		require.Equal(t, 3, mockStore.UpdateAccountCalls)
 	})
 	t.Run("mock Account creation and provision", func(t *testing.T) {
 		logger := testlib.MakeLogger(t)
@@ -138,6 +153,7 @@ func TestAccountSupervisorDo(t *testing.T) {
 			State: model.AccountStateCreationRequested,
 			AccountMetadata: &model.AccountMetadata{
 				Provision: true,
+				Subnet:    "10.0.0.0/24",
 			},
 		}}
 		mockStore.Account = mockStore.UnlockedAccountsPendingWork[0]

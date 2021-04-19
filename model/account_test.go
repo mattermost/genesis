@@ -18,7 +18,8 @@ func TestAccountClone(t *testing.T) {
 		ProviderMetadataAWS: &AWSMetadata{ServiceCatalogProductID: "prod-12345"},
 	}
 
-	clone := account.Clone()
+	clone, err := account.Clone()
+	require.NoError(t, err)
 	require.Equal(t, account, clone)
 
 	// Verify changing pointers in the clone doesn't affect the original.

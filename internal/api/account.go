@@ -106,10 +106,22 @@ func handleCreateAccount(c *Context, w http.ResponseWriter, r *http.Request) {
 		},
 		AccountMetadata: &model.AccountMetadata{
 			Provision: createAccountRequest.Provision,
+			Subnet:    createAccountRequest.Subnet,
 		},
 		Provisioner:     "genesis",
 		APISecurityLock: createAccountRequest.APISecurityLock,
 		State:           model.AccountStateCreationRequested,
+	}
+
+	if createAccountRequest.Provision {
+		var subnet *model.Subnet
+		subnet, err := c.Store.ClaimSubnet(createAccountRequest.Subnet, account.ProviderMetadataAWS.AWSAccountID)
+		if err != nil {
+			c.Logger.WithError(err).Error("failed to claim subnet")
+			w.WriteHeader(http.StatusInternalServerError)
+		}
+
+		account.AccountMetadata.Subnet = subnet.CIDR
 	}
 
 	if err = c.Store.CreateAccount(&account); err != nil {
@@ -130,7 +142,7 @@ func handleCreateAccount(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Logger.WithError(err).Error("Unable to process and send webhooks")
 	}
 
-	c.Supervisor.Do()
+	c.Supervisor.Do() //nolint
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusAccepted)
@@ -183,7 +195,7 @@ func handleRetryCreateAccount(c *Context, w http.ResponseWriter, r *http.Request
 
 	// Notify even if we didn't make changes, to expedite even the no-op operations above.
 	unlockOnce()
-	c.Supervisor.Do()
+	c.Supervisor.Do() //nolint
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusAccepted)
@@ -210,7 +222,7 @@ func handleProvisionAccount(c *Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	_, err := model.NewProvisionAccountRequestFromReader(r.Body)
+	provisionAccountRequest, err := model.NewProvisionAccountRequestFromReader(r.Body)
 	if err != nil {
 		c.Logger.WithError(err).Error("failed to deserialize account provision request body")
 		w.WriteHeader(http.StatusInternalServerError)
@@ -237,21 +249,36 @@ func handleProvisionAccount(c *Context, w http.ResponseWriter, r *http.Request) 
 		account.State = newState
 		account.AccountMetadata.Provision = true
 
-		err := c.Store.UpdateAccount(account)
-		if err != nil {
+		if account.AccountMetadata.Subnet == "" {
+			var subnet *model.Subnet
+
+			subnet, err := c.Store.ClaimSubnet(provisionAccountRequest.Subnet, account.ProviderMetadataAWS.AWSAccountID)
+			if err != nil {
+				c.Logger.WithError(err).Error("failed to claim subnet")
+				w.WriteHeader(http.StatusInternalServerError)
+			}
+
+			account.AccountMetadata.Subnet = subnet.CIDR
+
+		} else if account.AccountMetadata.Subnet != "" && provisionAccountRequest.Subnet != "" {
+			c.Logger.Error("There is a subnet already allocated to the account")
+			w.WriteHeader(http.StatusBadRequest)
+		}
+
+		if err := c.Store.UpdateAccount(account); err != nil {
 			c.Logger.WithError(err).Errorf("failed to mark account provisioning state")
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
 
 		if err := webhook.SendToAllWebhooks(c.Store, webhookPayload, c.Logger.WithField("webhookEvent", webhookPayload.NewState)); err != nil {
-			c.Logger.WithError(err).Error("Unable to process and send webhooks")
+			c.Logger.WithError(err).Error("unable to process and send webhooks")
 		}
 	}
 
 	// Notify even if we didn't make changes, to expedite even the no-op operations above.
 	unlockOnce()
-	c.Supervisor.Do()
+	c.Supervisor.Do() //nolint
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusAccepted)
@@ -286,24 +313,6 @@ func handleDeleteAccount(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// TODO: will be used soon
-	// genesisResources, err := c.Store.GetGenesisResources(&model.GenesisResourcesFilter{
-	// 	AccountID:      account.ID,
-	// 	IncludeDeleted: false,
-	// 	PerPage:        model.AllPerPage,
-	// })
-	// if err != nil {
-	// 	c.Logger.WithError(err).Error("failed to get genesis resources")
-	// 	w.WriteHeader(http.StatusInternalServerError)
-	// 	return
-	// }
-
-	// if len(genesisResources) != 0 {
-	// 	c.Logger.Errorf("unable to delete account while it still has %d genesis resources", len(genesisResources))
-	// 	w.WriteHeader(http.StatusForbidden)
-	// 	return
-	// }
-
 	if account.State != newState {
 		webhookPayload := &model.WebhookPayload{
 			Type:      model.TypeAccount,
@@ -327,7 +336,7 @@ func handleDeleteAccount(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	unlockOnce()
-	c.Supervisor.Do()
+	c.Supervisor.Do() //nolint
 
 	w.WriteHeader(http.StatusAccepted)
 }

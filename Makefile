@@ -60,7 +60,7 @@ check-style: govet lint
 .PHONY: lint
 lint: $(GOLANGCILINT_GEN)
 	@echo Running golangci lint
-	$(GOLANGCILINT_GEN) -set_exit_status ./...
+	$(GOLANGCILINT_GEN) run ./...
 	@echo lint success
 
 ## Runs govet against all packages.
@@ -135,5 +135,5 @@ $(GOVERALLS_GEN): ## Build goveralls.
 	GOBIN=$(TOOLS_BIN_DIR) $(GO_INSTALL) github.com/mattn/goveralls $(GOVERALLS_BIN) $(GOVERALLS_VER)
 
 $(GOLANGCILINT_GEN): ## Build golang-ci lint.
-	GOBIN=$(TOOLS_BIN_DIR) $(GO_INSTALL) github.com/golangci/golangci-lint $(GOLANGCILINT_BIN) $(GOLANGCILINT_VER)
+	GOBIN=$(TOOLS_BIN_DIR) $(GO_INSTALL) github.com/golangci/golangci-lint/cmd/golangci-lint $(GOLANGCILINT_BIN) $(GOLANGCILINT_VER)
 

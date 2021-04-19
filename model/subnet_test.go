@@ -16,7 +16,8 @@ func TestSubnetClone(t *testing.T) {
 		CIDR: "10.0.0.0/8",
 	}
 
-	clone := subnet.Clone()
+	clone, err := subnet.Clone()
+	require.NoError(t, err)
 	require.Equal(t, subnet, clone)
 }
 

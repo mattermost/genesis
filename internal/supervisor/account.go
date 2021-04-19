@@ -24,6 +24,9 @@ type accountStore interface {
 	UnlockAccount(accountID string, lockerID string, force bool) (bool, error)
 	DeleteAccount(accountID string) error
 
+	ClaimSubnet(cidr string, accountID string) (*model.Subnet, error)
+	SubnetCleanup(cidr string) error
+
 	GetWebhooks(filter *model.WebhookFilter) ([]*model.Webhook, error)
 }
 
@@ -183,7 +186,7 @@ func (s *AccountSupervisor) createAccount(account *model.Account, logger log.Fie
 	if account.AccountMetadata.Provision {
 		return s.provisionAccount(account, logger)
 	}
-	return model.AccountStateStable
+	return s.refreshAccountMetadata(account, logger)
 }
 
 func (s *AccountSupervisor) provisionAccount(account *model.Account, logger log.FieldLogger) string {
@@ -216,6 +219,11 @@ func (s *AccountSupervisor) deleteAccount(account *model.Account, logger log.Fie
 
 	if err = s.store.DeleteAccount(account.ID); err != nil {
 		logger.WithError(err).Error("Failed to record updated account after deletion")
+		return model.AccountStateDeletionFailed
+	}
+
+	if err = s.store.SubnetCleanup(account.AccountMetadata.Subnet); err != nil {
+		logger.WithError(err).Error("Failed to do subnet store cleanup")
 		return model.AccountStateDeletionFailed
 	}
 

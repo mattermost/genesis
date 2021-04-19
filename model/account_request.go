@@ -18,6 +18,7 @@ type CreateAccountRequest struct {
 	Provider                string `json:"provider,omitempty"`
 	ServiceCatalogProductID string `json:"serviceCatalogProductID,omitempty"`
 	Provision               bool   `json:"provision,omitempty"`
+	Subnet                  string `json:"subnet,omitempty"`
 	APISecurityLock         bool   `json:"api-security-lock,omitempty"`
 }
 
@@ -78,6 +79,7 @@ func (request *GetAccountsRequest) ApplyToURL(u *url.URL) {
 
 // ProvisionAccountRequest contains metadata related to changing the installed account state.
 type ProvisionAccountRequest struct {
+	Subnet string
 }
 
 // NewProvisionAccountRequestFromReader will create an UpdateAccountRequest from an io.Reader with JSON data.

@@ -19,7 +19,7 @@ var encoding = base32.NewEncoding("ybndrfg8ejkmcpqxot1uwisza345h769")
 func NewID() string {
 	var b bytes.Buffer
 	encoder := base32.NewEncoder(encoding, &b)
-	encoder.Write(uuid.NewRandom())
+	encoder.Write(uuid.NewRandom()) //nolint
 	encoder.Close()
 	b.Truncate(26) // removes the '==' padding
 	return b.String()

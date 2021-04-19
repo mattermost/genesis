@@ -20,12 +20,18 @@ type ParentSubnet struct {
 }
 
 // Clone returns a deep copy of the parent subnet.
-func (c *ParentSubnet) Clone() *ParentSubnet {
+func (c *ParentSubnet) Clone() (*ParentSubnet, error) {
 	var clone ParentSubnet
-	data, _ := json.Marshal(c)
-	json.Unmarshal(data, &clone)
+	data, err := json.Marshal(c)
+	if err != nil {
+		return nil, err
+	}
 
-	return &clone
+	if err = json.Unmarshal(data, &clone); err != nil {
+		return nil, err
+	}
+
+	return &clone, nil
 }
 
 // ParentSubnetFromReader decodes a json-encoded parent subnet from the given io.Reader.
